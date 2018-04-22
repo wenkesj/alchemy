@@ -2,5 +2,6 @@
 from __future__ import absolute_import
 
 from .distribution import *
+from .raw_nn import *
 from .sequence import *
 from .utils import *

@@ -19,7 +19,7 @@ class SpaceTest(unittest.TestCase):
 
     inputs_sample = space.build_mode_op(inputs_ph)
 
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       inputs = np.random.uniform(low=-10, high=10, size=[1,] + input_shape)
       outputs = sess.run(inputs_sample, feed_dict={inputs_ph: inputs})
@@ -37,7 +37,11 @@ class SpaceTest(unittest.TestCase):
 
     inputs_sample = space.build_sample_op(inputs_ph)
 
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       inputs = np.random.uniform(low=[-10, -1.], high=[10., 0.], size=[1,] + input_shape)
       outputs = sess.run(inputs_sample, feed_dict={inputs_ph: inputs})
+
+
+if __name__ == '__main__':
+  tf.test.main()

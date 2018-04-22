@@ -18,6 +18,30 @@ class Trajectory(object):
     self.size += 1
     return self
 
+  @property
+  def state(self):
+    return [t.state for t in self.transitions]
+
+  @property
+  def action(self):
+    return [t.action for t in self.transitions]
+
+  @property
+  def values(self):
+    return [t.values for t in self.transitions]
+
+  @property
+  def reward(self):
+    return [t.reward for t in self.transitions]
+
+  @property
+  def terminal(self):
+    return [t.terminal for t in self.transitions]
+
+  @property
+  def info(self):
+    return [t.info for t in self.transitions]
+
   def __gt__(self, x):
     return self.weight > x.weight
 

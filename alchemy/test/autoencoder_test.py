@@ -3,12 +3,10 @@ import numpy as np
 
 import tensorflow as tf
 
-import unittest
-
 from alchemy import layers, utils
 
 
-class AutoEncoderTest(unittest.TestCase):
+class AutoEncoderTest(tf.test.TestCase):
 
   def test_conv2d_autoencoder(self):
     tf.reset_default_graph()
@@ -27,8 +25,11 @@ class AutoEncoderTest(unittest.TestCase):
             outputs.get_shape().as_list(),
             inputs_ph.get_shape().as_list()))
 
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       input_image = np.zeros((1, 8, 8, 1))
       output_image = sess.run(outputs, feed_dict={inputs_ph: input_image})
       self.assertTrue(np.all(np.equal(input_image, output_image)))
+
+if __name__ == '__main__':
+  tf.test.main()

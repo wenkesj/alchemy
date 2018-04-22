@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-
 from random import randint
-
-import unittest
-
 import tensorflow as tf
-
 from alchemy import utils
 
 
-class UtilsTest(unittest.TestCase):
+class UtilsTest(tf.test.TestCase):
 
   def test_safe_tf_dtype(self):
     self.assertTrue(utils.safe_tf_dtype(tf.int64) == tf.int64)
@@ -59,7 +54,7 @@ class UtilsTest(unittest.TestCase):
   def test_pad_or_truncate(self):
     tf.reset_default_graph()
     x_ph = tf.placeholder(tf.int32, [1, None])
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       x = np.array([[0, 1, 2]])
       tf_x = utils.pad_or_truncate(x_ph, 4, 3)
       expected_x = np.array([[0, 1, 2, 3]])
@@ -74,7 +69,7 @@ class UtilsTest(unittest.TestCase):
   def test_shift_right(self):
     tf.reset_default_graph()
     x_ph = tf.placeholder(tf.int32, [1, None])
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       x = np.array([[3, 2, 1]])
       tf_x = utils.shift_right(x_ph)
       expected_x = np.array([[0, 3, 2]])
@@ -85,7 +80,7 @@ class UtilsTest(unittest.TestCase):
     tf.reset_default_graph()
     x = np.array([0, 1, 2, 3, 4])
     tf_normal_x = utils.normalize(tf.constant(x))
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       normal_x = sess.run(tf_normal_x)
       expected_normal_x = (x - x.min()) / (x.max() - x.min())
       self.assertTrue(utils.eps_equal(normal_x, expected_normal_x, 1e-7))
@@ -98,7 +93,7 @@ class UtilsTest(unittest.TestCase):
     masked_inputs = inputs_ph * sequence_length_mask
     masked_means = tf.reduce_sum(masked_inputs, axis=-1) / sequence_length_total
 
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       x = np.array([[0., 1., 2., 3., 4.]])
       lengths = np.array([3])
 
@@ -114,3 +109,7 @@ class UtilsTest(unittest.TestCase):
 
       self.assertTrue(np.all(np.equal(expected_masked_inputs, actual_masked_inputs)))
       self.assertTrue(np.all(np.equal(expected_masked_means, actual_masked_means)))
+
+
+if __name__ == '__main__':
+  tf.test.main()

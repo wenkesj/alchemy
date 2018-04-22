@@ -8,7 +8,7 @@ import unittest
 from alchemy import layers, utils
 
 
-class RNNTest(unittest.TestCase):
+class RNNTest(tf.test.TestCase):
 
   def test_stacked_rnn(self):
     cell_fns = [
@@ -16,6 +16,8 @@ class RNNTest(unittest.TestCase):
       lambda size: tf.contrib.rnn.BasicLSTMCell(size),
       lambda size: tf.contrib.rnn.LSTMCell(size),
       lambda size: tf.contrib.rnn.GRUCell(size),
+      lambda size: layers.FastWeightsRNNCell(size),
+      lambda size: layers.FastWeightsLSTMCell(size),
     ]
 
     for cell_fn in cell_fns:
@@ -25,7 +27,7 @@ class RNNTest(unittest.TestCase):
 
       scope = 'stacked_rnn'
       outputs, states, initial_state_phs, zero_states = layers.stacked_rnn(
-          inputs_ph, [3, 2], cell_fn, scope)
+          inputs_ph, [2, 4], cell_fn, scope)
 
       batch_size = 1
       num_iters = 4
@@ -41,3 +43,7 @@ class RNNTest(unittest.TestCase):
                 inputs_ph: input_seq,
                 **{k: v for k, v in zip(initial_state_phs, initial_states)},
               })
+
+
+if __name__ == '__main__':
+  tf.test.main()

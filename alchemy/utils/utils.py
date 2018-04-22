@@ -4,6 +4,22 @@ import numpy as np
 import tensorflow as tf
 
 
+def is_iterable(x):
+  try:
+    iter(x)
+    return True
+  except TypeError:
+    return False
+  finally:
+    return True
+
+
+def iterable(x):
+  if is_iterable(x):
+    return x
+  return [x]
+
+
 def safe_tf_dtype(dtype):
   if isinstance(dtype, str):
     return tf.as_dtype(dtype)
@@ -19,6 +35,20 @@ def safe_tf_dtype(dtype):
 
 def product(x):
   return np.prod(x)
+
+
+def flatten(x):
+  return x.reshape((product(x.shape)))
+
+
+def unflatten(x, shapes):
+  arrays = []
+  start = 0
+  for shape in shapes:
+    end = product(shape)
+    arrays.append(x[start:start+end].reshape(shape))
+    start += end
+  return arrays
 
 
 def ranged_axes(shape):

@@ -33,3 +33,6 @@ class RolloutTest(unittest.TestCase):
         max_trajectory_steps=max_trajectory_steps)
 
     self.assertTrue(len(trajectories) == int(max_rollout_steps / max_trajectory_steps))
+
+if __name__ == '__main__':
+  unittest.test.main()

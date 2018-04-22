@@ -9,8 +9,6 @@ import tensorflow as tf
 
 import time
 
-import unittest
-
 from alchemy.memory import Memory, rollout_to_src, RolloutPool, rollout_dataset
 
 
@@ -55,7 +53,7 @@ class CartPoleReplayMemory(Memory):
     return len(self.ram)
 
 
-class MemoryTest(unittest.TestCase):
+class MemoryTest(tf.test.TestCase):
 
   def test_simple_memory(self):
     ram = CartPoleReplayMemory()
@@ -154,9 +152,12 @@ class MemoryTest(unittest.TestCase):
         batch_size=batch_size,
         max_sequence_length=max_sequence_length)
 
-    with tf.Session() as sess:
+    with self.test_session() as sess:
       batch = (state, next_state, action, value, reward, terminal, sequence_length) = sess.run(
           dataset)
       for feature in batch[:-1]:
         self.assertTrue(feature.shape[0], batch_size)
         self.assertTrue(feature.shape[1], max_sequence_length)
+
+if __name__ == '__main__':
+  tf.test.main()

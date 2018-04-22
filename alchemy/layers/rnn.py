@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 
-
-def _create_initial_state(cell, cell_type, dtype):
-  state_size = cell.state_size
+# tf.placeholder(dtype, [None, size], name='state_{}'.format(idx))
+def _create_initial_state(state_size, cell_type, dtype):
   if isinstance(state_size, tuple):
     states = []
-    for idx, size in enumerate(state_size):
-      state_in = tf.placeholder(dtype, [None, size], name='state_{}'.format(idx))
-      states.append(state_in)
-    states = tuple(states)
-    if cell_type == tf.contrib.rnn.BasicLSTMCell or cell_type == tf.contrib.rnn.LSTMCell:
-      states = tf.contrib.rnn.LSTMStateTuple(*states)
+    for size in state_size:
+      states.append(_create_initial_state(size, cell_type, dtype))
+    if state_size.__class__ == tuple:
+      states = tuple(states)
+    else:
+      states = state_size.__class__(*states)
     return states
-  state_in = tf.placeholder(dtype, [None, state_size], name='state_0')
+  if isinstance(state_size, tf.TensorShape):
+    return tf.placeholder(dtype, [None,] + state_size.as_list())
+  state_in = tf.placeholder(dtype, [None, state_size])
   return state_in
 
 
@@ -41,8 +42,8 @@ def stacked_rnn(inputs, hidden_sizes, cell_fn, scope, dropouts=None, dtype=tf.fl
       cell_types.append(cell_type)
 
     initial_states = tuple(
-        [_create_initial_state(cell, cell_type, dtype)
-            for cell, cell_type in zip(layers, cell_types)])
+        [_create_initial_state(cell.state_size, cell_type, dtype)
+         for cell, cell_type in zip(layers, cell_types)])
     layers = tf.contrib.rnn.MultiRNNCell(layers)
     outputs, states = tf.nn.dynamic_rnn(
         layers, inputs,
