@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from collections import deque
 
-from .memory import Memory
+from alchemy.memory import memory
 
 
-class FIFOMemory(Memory):
+# TODO(wenkesj): Add docstring
+class FIFOMemory(memory.Memory):
   def __init__(self,
                state_dtype, state_shape,
                action_dtype, action_shape,
@@ -42,8 +45,8 @@ class FIFOMemory(Memory):
   def action_value_shape(self):
     return self._action_value_shape
 
-  def write(self, memory):
-    self.ram.append(memory)
+  def write(self, mem):
+    self.ram.append(mem)
 
   def read(self):
     return self.ram.popleft()

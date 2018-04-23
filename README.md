@@ -1,14 +1,6 @@
-This repo' contains some code I've used pretty regularly for machine learning. I've been looking
-to dump it somewhere remote for easy access in my other projects.
-
-I will keep adding random shared modules that I use for tensorflow and ML tasks.
-
-Feel free to use it, look at the tests for examples/usage, what-not.
-
-As I go, I may scrap some of the code that is redundant and replace it with an outside API as a
-dependency.
-
-## License
+<p align="center"><img width="200" height="200" src="chem.svg"></p>
+<p align="center">alchemy</p>
+<hr/>
 
 ```
 The MIT License (MIT)

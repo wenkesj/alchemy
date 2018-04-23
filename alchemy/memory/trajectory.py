@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import collections
 
 
+# TODO(wenkesj): add docstring
 class Transition(collections.namedtuple('Transition', ['state', 'action', 'values',
                                                        'reward', 'terminal', 'info'])):
   pass
 
 
+# TODO(wenkesj): add docstring
 class Trajectory(object):
+
   def __init__(self, transitions, weight=0.):
     self.transitions = transitions
     self.size = len(transitions)

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from abc import ABC, abstractmethod, abstractproperty
 
 
+# TODO(wenkesj): Add docstring
+# TODO(wenkesj): Design a better process to make this super simplified.
+# i.e. factories for memory declaration, like `collections`
 class Memory(ABC):
-  """Write and read a single example."""
   @abstractproperty
   def state_dtype(self):
     pass

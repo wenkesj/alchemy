@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 
-extras_require = {'demo': ['pynput'], 'envs': ['vizdoom', 'gym', 'scipy']}
+extras_require = {'contrib': ['pynput', 'vizdoom', 'gym', 'scipy']}
 install_requires = ['tensorflow', 'numpy']
 tests_require = ['gym']
 

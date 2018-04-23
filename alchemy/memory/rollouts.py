@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import numpy as np
-
 import tensorflow as tf
-
 from time import sleep
 
-from alchemy.multiprocessing import ThreadPool
-from alchemy.utils import list_pad_or_truncate, partition, safe_tf_dtype, shift_right
+from alchemy.memory import trajectory
+from alchemy.multiprocessing import pool
+from alchemy.utils import array_utils
+from alchemy.utils import type_utils
 
-from .trajectory import Trajectory, Transition
 
-
+# TODO(wenkesj): add BETTER docstring
 def rollout(env, step_fn,
             initial_internals=None,
             max_rollout_steps=-1,
             max_trajectory_steps=-1):
-  """record histroy of an env by a step_fn, returns a list of Trajectory(s)"""
-  traj = Trajectory([])
+  """Record histroy of an env by a step_fn, returns a list of Trajectory(s)."""
+  traj = trajectory.Trajectory([])
   next_state = env.reset()
   stoppable = max_rollout_steps > 0
 
@@ -31,7 +32,7 @@ def rollout(env, step_fn,
     next_state, reward, terminal, info = env.step(action)
 
     traj.add(
-        Transition(state=state,
+        trajectory.Transition(state=state,
                    action=action,
                    values=values,
                    reward=reward,
@@ -46,15 +47,16 @@ def rollout(env, step_fn,
   if max_trajectory_steps > 0:
     if step > max_trajectory_steps:
       trajs = []
-      for part in partition(traj.transitions, max_trajectory_steps):
-        traj_part = Trajectory([])
+      for part in array_utils.partition(traj.transitions, max_trajectory_steps):
+        traj_part = trajectory.Trajectory([])
         for pack in zip(*part):
-          traj_part.add(Transition(*pack))
+          traj_part.add(trajectory.Transition(*pack))
         trajs.append(traj_part)
       return trajs
   return [traj]
 
 
+# TODO(wenkesj): add docstring
 def rollout_to_src(src, env, step_fn,
                    initial_internals=None,
                    num_episodes=1,
@@ -76,7 +78,9 @@ def rollout_to_src(src, env, step_fn,
   env.close()
 
 
-class RolloutPool(ThreadPool):
+# TODO(wenkesj): add docstring
+class RolloutPool(pool.ThreadPool):
+
   def __init__(self, create_env_fn, num_envs=1, num_threads=1):
     super(RolloutPool, self).__init__(num_threads)
     self._create_env_fn = create_env_fn
@@ -108,6 +112,7 @@ class RolloutPool(ThreadPool):
       self.wait_completion()
 
 
+# TODO(wenkesj): add BETTER docstring
 def rollout_dataset(src,
                     batch_size=1,
                     max_sequence_length=200,
@@ -135,21 +140,26 @@ def rollout_dataset(src,
         state, action, value, reward, terminal, _ = zip(*traj.transitions)
         sequence_length = np.asarray([min(max_sequence_length, traj.size)])
         state = np.asarray(
-            list_pad_or_truncate(list(state), max_sequence_length, np.zeros(state_shape)))
+            array_utils.list_pad_or_truncate(
+                list(state), max_sequence_length, np.zeros(state_shape)))
         action = np.asarray(
-            list_pad_or_truncate(list(action), max_sequence_length, np.zeros(action_shape)))
+            array_utils.list_pad_or_truncate(
+                list(action), max_sequence_length, np.zeros(action_shape)))
         value = np.asarray(
-            list_pad_or_truncate(list(value), max_sequence_length, np.zeros(action_value_shape)))
+            array_utils.list_pad_or_truncate(
+                list(value), max_sequence_length, np.zeros(action_value_shape)))
         reward = np.asarray(
-            list_pad_or_truncate(list(reward), max_sequence_length, 0.))
+            array_utils.list_pad_or_truncate(
+                list(reward), max_sequence_length, 0.))
         terminal = np.asarray(
-            list_pad_or_truncate(list(terminal), max_sequence_length, True))
+            array_utils.list_pad_or_truncate(
+                list(terminal), max_sequence_length, True))
         yield (state, action, value, reward, terminal, sequence_length)
 
     dtypes_and_shapes = [
-        (safe_tf_dtype(state_dtype), [None] + state_shape), # state
-        (safe_tf_dtype(action_dtype), [None] + action_shape), # action
-        (safe_tf_dtype(action_value_dtype), [None] + action_value_shape), # value
+        (type_utils.safe_tf_dtype(state_dtype), [None] + state_shape), # state
+        (type_utils.safe_tf_dtype(action_dtype), [None] + action_shape), # action
+        (type_utils.safe_tf_dtype(action_value_dtype), [None] + action_value_shape), # value
         (tf.float32, [None]), # reward
         (tf.bool, [None]), # terminal
         (tf.int32, [1]), # sequence_length
