@@ -95,29 +95,27 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
     add = math_ops.add
     multiply = math_ops.multiply
 
-    slow = array_ops.expand_dims(add(
-        math_ops.matmul(hidden_state, self._kernel_w),
-        nn_ops.bias_add(
-            math_ops.matmul(inputs, self._kernel_c), self._bias_c)), 1)
-
-    hidden_state = self._activation(
-        layers.layer_norm(slow, scope=self._layer_norm_scope)
-        if self._use_layer_norm else slow)
-
-    h = hidden_state
-    for i in range(self._S):
-      dot = math_ops.matmul(h, fast_weights)
-      inner = add(slow, dot)
-      h = self._activation(
-          layers.layer_norm(inner, reuse=True, scope=self._layer_norm_scope)
-          if self._use_layer_norm else inner)
-    hidden_state = gen_array_ops.reshape(h, [batch_size, self._num_units])
+    slow = array_ops.expand_dims(
+        add(
+            math_ops.matmul(hidden_state, self._kernel_w),
+            nn_ops.bias_add(
+                math_ops.matmul(inputs, self._kernel_c), self._bias_c)),
+            1)
+    hidden_state = self._activation(slow)
 
     fast_weights = add(
         multiply(self._lambda, fast_weights),
         multiply(self._eta, special_math_ops.einsum(
             "ki,kj->ij", hidden_state, hidden_state)))
 
+    h = tf.identity(hidden_state)
+    for i in range(self._S):
+      dot = math_ops.matmul(h, fast_weights)
+      inner = add(slow, dot)
+      h = self._activation(
+          layers.layer_norm(inner, reuse=True)
+          if self._use_layer_norm else inner)
+    hidden_state = gen_array_ops.reshape(h, [batch_size, self._num_units])
     return hidden_state, FastWeightsStateTuple(hidden_state, fast_weights)
 
 
@@ -189,7 +187,7 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
         array_ops.concat([inputs, h], 1), self._kernel)
     gate_inputs = nn_ops.bias_add(gate_inputs, self._bias)
     if self._use_layer_norm:
-      gate_inputs = layers.layer_norm(gate_inputs, scope=self._layer_norm_scope)
+      gate_inputs = layers.layer_norm(gate_inputs)
 
     # i = input_gate, j = new_input, f = forget_gate, o = output_gate
     i, j, f, o = array_ops.split(
@@ -212,7 +210,7 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
                 multiply(sigmoid(i), fast_j))
 
     if self._use_layer_norm:
-      new_c = layers.layer_norm(new_c, scope="{}_c".format(self._layer_norm_scope))
+      new_c = layers.layer_norm(new_c)
 
     new_h = multiply(self._activation(new_c), sigmoid(o))
 
