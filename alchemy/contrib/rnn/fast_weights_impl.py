@@ -195,10 +195,11 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
         value=gate_inputs, num_or_size_splits=4, axis=1)
 
     fast_j = self._activation(j)
+    expand_fast_j = array_ops.expand_dims(fast_j, 1)
     fast_weights = add(
         scalar_mul(self._lambda, fast_weights),
         scalar_mul(self._eta, math_ops.matmul(
-            array_ops.transpose(fast_j, [0, 2, 1]), fast_j)))
+            array_ops.transpose(expand_fast_j, [0, 2, 1]), expand_fast_j)))
 
     fast_weights_j = math_ops.matmul(
         gen_array_ops.reshape(fast_j, [batch_size, 1, -1]),
