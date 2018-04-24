@@ -114,7 +114,7 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
       dot = math_ops.matmul(h, fast_weights)
       inner = add(slow, dot)
       h = self._activation(
-          layers.layer_norm(inner, reuse=True)
+          layers.layer_norm(inner)
           if self._use_layer_norm else inner)
     hidden_state = gen_array_ops.reshape(h, [batch_size, self._num_units])
     return hidden_state, FastWeightsStateTuple(hidden_state, fast_weights)
