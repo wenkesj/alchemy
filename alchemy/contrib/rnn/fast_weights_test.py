@@ -11,7 +11,7 @@ from tensorflow.python.ops import variables
 from tensorflow.python.ops import variable_scope
 from tensorflow.python.platform import test
 
-from alchemy.contrib.layers import fast_weights_impl
+from alchemy.contrib.rnn import fast_weights_impl
 
 
 class FastWeightsTest(test.TestCase):

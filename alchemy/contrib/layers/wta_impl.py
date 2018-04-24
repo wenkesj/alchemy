@@ -33,3 +33,15 @@ class WTA(base.Layer):
 
   def compute_output_shape(self, input_shape):
     return input_shape
+
+
+def wta(inputs, k, name=None, **kwargs):
+  """Applies WTA to the input.
+  Dropout consists in keeping top-k activations and zero-ing out the rest.
+  Arguments:
+    inputs: Tensor input.
+    k: The top-k, between 0 and `input_shape[-1]`.
+    name: The name of the layer (string).
+  """
+  layer = WTA(k, name=name, **kwargs)
+  return layer.apply(inputs)

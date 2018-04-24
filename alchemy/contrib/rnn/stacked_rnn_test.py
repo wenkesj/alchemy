@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import numpy as np
 import tensorflow as tf
 
-from alchemy.contrib.layers import rnn
+from alchemy.contrib.rnn import stacked_rnn_impl
 
 
 class RNNTest(tf.test.TestCase):
@@ -23,7 +23,7 @@ class RNNTest(tf.test.TestCase):
       inputs_ph = tf.placeholder(dtype, [None, None, 1])
 
       scope = 'stacked_rnn'
-      outputs, states, initial_state_phs, zero_states = rnn.stacked_rnn(
+      outputs, states, initial_state_phs, zero_states = stacked_rnn_impl.stacked_rnn(
           inputs_ph, [2, 4], cell_fn, scope)
 
       batch_size = 1
