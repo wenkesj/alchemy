@@ -94,7 +94,6 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
 
     batch_size = array_ops.shape(fast_weights)[0]
     add = math_ops.add
-    multiply = math_ops.multiply
     scalar_mul = math_ops.scalar_mul
 
     slow = array_ops.expand_dims(
@@ -105,7 +104,6 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
             1)
     hidden_state = self._activation(slow)
 
-    # squeezed = array_ops.squeeze(hidden_state, 1)
     fast_weights = add(
         scalar_mul(self._lambda, fast_weights),
         scalar_mul(self._eta, math_ops.matmul(
@@ -183,6 +181,7 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
     add = math_ops.add
     multiply = math_ops.multiply
     sigmoid = math_ops.sigmoid
+    scalar_mul = math_ops.scalar_mul
 
     # Parameters of gates are concatenated into one multiply for efficiency.
     gate_inputs = math_ops.matmul(
@@ -197,9 +196,10 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
 
     fast_j = self._activation(j)
     fast_weights = add(
-        multiply(self._lambda, fast_weights),
-        multiply(self._eta, special_math_ops.einsum(
-            "ki,kj->ij", fast_j, fast_j)))
+        scalar_mul(self._lambda, fast_weights),
+        scalar_mul(self._eta, math_ops.matmul(
+            array_ops.transpose(fast_j, [0, 2, 1]), fast_j)))
+
     fast_weights_j = math_ops.matmul(
         gen_array_ops.reshape(fast_j, [batch_size, 1, -1]),
         fast_weights)
