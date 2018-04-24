@@ -51,7 +51,7 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
                loop_steps=1,
                fast_learning_rate=.5,
                fast_decay_rate=0.95,
-               layer_norm_scope="layer_norm",
+               use_bias=True,
                reuse=None,
                name=None):
     super(FastWeightsRNNCell, self).__init__(_reuse=reuse, name=name)
@@ -61,7 +61,7 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
     self._S = loop_steps
     self._eta = fast_learning_rate
     self._lambda = fast_decay_rate
-    self._layer_norm_scope = layer_norm_scope
+    self._use_bias = use_bias
 
   @property
   def state_size(self):
@@ -83,10 +83,11 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
         "{}_c".format(_WEIGHTS_VARIABLE_NAME),
         [inputs_shape[1], self.output_size],
         dtype=self.dtype)
-    self._bias_c = self.add_variable(
-        "{}_c".format(_BIAS_VARIABLE_NAME),
-        [self.output_size],
-        dtype=self.dtype)
+    if self._use_bias:
+      self._bias_c = self.add_variable(
+          "{}_c".format(_BIAS_VARIABLE_NAME),
+          [self.output_size],
+          dtype=self.dtype)
 
   def call(self, inputs, state, scope=None):
     hidden_state, fast_weights = state
@@ -94,6 +95,7 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
     batch_size = array_ops.shape(fast_weights)[0]
     add = math_ops.add
     multiply = math_ops.multiply
+    scalar_mul = math_ops.scalar_mul
 
     slow = array_ops.expand_dims(
         add(
@@ -103,16 +105,15 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
             1)
     hidden_state = self._activation(slow)
 
-    squeezed = array_ops.squeeze(hidden_state, 1)
+    # squeezed = array_ops.squeeze(hidden_state, 1)
     fast_weights = add(
-        multiply(self._lambda, fast_weights),
-        multiply(self._eta, special_math_ops.einsum(
-            "ki,kj->ij", squeezed, squeezed)))
+        scalar_mul(self._lambda, fast_weights),
+        scalar_mul(self._eta, math_ops.matmul(
+            array_ops.transpose(hidden_state, [0, 2, 1]), hidden_state)))
 
     h = array_ops.identity(hidden_state)
     for i in range(self._S):
-      dot = math_ops.matmul(h, fast_weights)
-      inner = add(slow, dot)
+      inner = add(slow, math_ops.matmul(h, fast_weights))
       h = self._activation(
           layers.layer_norm(inner)
           if self._use_layer_norm else inner)
