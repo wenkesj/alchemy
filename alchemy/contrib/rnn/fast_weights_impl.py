@@ -99,21 +99,24 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
         multiply(self._lambda, fast_weights),
         multiply(self._eta, special_math_ops.einsum(
             "ki,kj->ij", hidden_state, hidden_state)))
-    slow = add(
+
+    slow = array_ops.expand_dims(add(
         math_ops.matmul(hidden_state, self._kernel_w),
         nn_ops.bias_add(
-            math_ops.matmul(inputs, self._kernel_c), self._bias_c))
+            math_ops.matmul(inputs, self._kernel_c), self._bias_c)), 1)
 
     hidden_state = self._activation(
         layers.layer_norm(slow, scope=self._layer_norm_scope)
         if self._use_layer_norm else slow)
 
-    h = gen_array_ops.reshape(hidden_state, [batch_size, 1, -1])
+    h = hidden_state
     for i in range(self._S):
-      inner = add(slow, math_ops.matmul(h, fast_weights))
+      dot = math_ops.matmul(h, fast_weights)
+      inner = add(slow, dot)
       h = self._activation(
           layers.layer_norm(inner, reuse=True, scope=self._layer_norm_scope)
           if self._use_layer_norm else inner)
+
     h = gen_array_ops.reshape(h, [batch_size, self._num_units])
     hidden_state = h
     return hidden_state, FastWeightsStateTuple(hidden_state, fast_weights)
