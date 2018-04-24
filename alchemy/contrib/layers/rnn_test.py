@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 
 from alchemy.contrib.layers import rnn
-from alchemy.contrib.layers import fast_weights
 
 
 class RNNTest(tf.test.TestCase):
@@ -16,8 +15,6 @@ class RNNTest(tf.test.TestCase):
       lambda size: tf.contrib.rnn.BasicLSTMCell(size),
       lambda size: tf.contrib.rnn.LSTMCell(size),
       lambda size: tf.contrib.rnn.GRUCell(size),
-      lambda size: fast_weights.FastWeightsRNNCell(size),
-      lambda size: fast_weights.FastWeightsLSTMCell(size),
     ]
 
     for cell_fn in cell_fns:

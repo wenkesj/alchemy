@@ -33,5 +33,6 @@ class AutoEncoderTest(tf.test.TestCase):
       output_image = sess.run(outputs, feed_dict={inputs_ph: input_image})
       self.assertTrue(np.all(np.equal(input_image, output_image)))
 
+
 if __name__ == '__main__':
   tf.test.main()

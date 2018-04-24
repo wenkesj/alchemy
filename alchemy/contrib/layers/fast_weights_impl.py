@@ -3,11 +3,12 @@ from __future__ import absolute_import
 
 import collections
 
-import tensorflow as tf
-
+from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import gen_array_ops
 from tensorflow.python.ops import init_ops
 from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import special_math_ops
 from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.contrib import layers
@@ -65,7 +66,8 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
   @property
   def state_size(self):
     return FastWeightsStateTuple(
-        self._num_units, tf.TensorShape([self._num_units, self._num_units]))
+        self._num_units, tensor_shape.TensorShape(
+            [self._num_units, self._num_units]))
 
   @property
   def output_size(self):
@@ -89,29 +91,30 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
   def call(self, inputs, state, scope=None):
     hidden_state, fast_weights = state
 
-    batch_size = tf.shape(fast_weights)[0]
+    batch_size = array_ops.shape(fast_weights)[0]
     add = math_ops.add
     multiply = math_ops.multiply
 
     fast_weights = add(
         multiply(self._lambda, fast_weights),
-        multiply(self._eta, tf.einsum("ki,kj->ij", hidden_state, hidden_state)))
+        multiply(self._eta, special_math_ops.einsum(
+            "ki,kj->ij", hidden_state, hidden_state)))
     slow = add(
-        tf.matmul(hidden_state, self._kernel_w),
+        math_ops.matmul(hidden_state, self._kernel_w),
         nn_ops.bias_add(
-            tf.matmul(inputs, self._kernel_c), self._bias_c))
+            math_ops.matmul(inputs, self._kernel_c), self._bias_c))
 
     hidden_state = self._activation(
         layers.layer_norm(slow, scope=self._layer_norm_scope)
         if self._use_layer_norm else slow)
 
-    h = tf.reshape(hidden_state, [batch_size, 1, -1])
+    h = gen_array_ops.reshape(hidden_state, [batch_size, 1, -1])
     for i in range(self._S):
-      inner = add(slow, tf.matmul(h, fast_weights))
+      inner = add(slow, math_ops.matmul(h, fast_weights))
       h = self._activation(
           layers.layer_norm(inner, reuse=True, scope=self._layer_norm_scope)
           if self._use_layer_norm else inner)
-    h = tf.reshape(h, [batch_size, self._num_units])
+    h = gen_array_ops.reshape(h, [batch_size, self._num_units])
     hidden_state = h
     return hidden_state, FastWeightsStateTuple(hidden_state, fast_weights)
 
@@ -149,7 +152,7 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
   def state_size(self):
     return FastWeightsStateTuple(
         rnn_cell_impl.LSTMStateTuple(self._num_units, self._num_units),
-        tf.TensorShape([self._num_units, self._num_units]))
+        tensor_shape.TensorShape([self._num_units, self._num_units]))
 
   @property
   def output_size(self):
@@ -174,7 +177,7 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
 
   def call(self, inputs, state):
     (c, h), fast_weights = state
-    batch_size = tf.shape(fast_weights)[0]
+    batch_size = array_ops.shape(fast_weights)[0]
     add = math_ops.add
     multiply = math_ops.multiply
     sigmoid = math_ops.sigmoid
@@ -193,11 +196,12 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
     fast_j = self._activation(j)
     fast_weights = add(
         multiply(self._lambda, fast_weights),
-        multiply(self._eta, tf.einsum("ki,kj->ij", fast_j, fast_j)))
-    fast_weights_j = tf.matmul(
-        tf.reshape(fast_j, [batch_size, 1, -1]),
+        multiply(self._eta, special_math_ops.einsum(
+            "ki,kj->ij", fast_j, fast_j)))
+    fast_weights_j = math_ops.matmul(
+        gen_array_ops.reshape(fast_j, [batch_size, 1, -1]),
         fast_weights)
-    fast_weights_j = tf.reshape(fast_weights_j, [batch_size, self._num_units])
+    fast_weights_j = gen_array_ops.reshape(fast_weights_j, [batch_size, self._num_units])
     fast_j = self._activation(add(fast_j, fast_weights_j))
 
     # Note that using `add` and `multiply` instead of `+` and `*` gives a

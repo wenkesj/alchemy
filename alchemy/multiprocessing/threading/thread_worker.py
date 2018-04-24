@@ -17,7 +17,7 @@ class ThreadWorker(threading.Thread):
     self.start()
 
   def run(self):
-    """Run a task on the queue and append what is returned from the task to the `self.results`."""
+    """Run a task on the queue and append to `self.results`."""
     while True:
       func, args, kargs = self.tasks.get()
       try:
