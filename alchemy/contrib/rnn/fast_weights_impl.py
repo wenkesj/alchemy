@@ -109,7 +109,7 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
         multiply(self._eta, special_math_ops.einsum(
             "ki,kj->ij", squeezed, squeezed)))
 
-    h = tf.identity(hidden_state)
+    h = array_ops.identity(hidden_state)
     for i in range(self._S):
       dot = math_ops.matmul(h, fast_weights)
       inner = add(slow, dot)
