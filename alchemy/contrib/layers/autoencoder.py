@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import tensorflow as tf
 
-from alchemy.contrib.layers import rnn
+from alchemy.contrib.rnn import stacked_rnn_impl
 
 
 # TODO(wenkesj): make this a set of flavors, like this one is vanilla
@@ -114,7 +114,7 @@ def conv2d_rnn_encoder(inputs,
           x, hidden,
           activation=latent_hidden_activation)
 
-    outputs, states, initial_state_phs, zero_states = rnn.stacked_rnn(
+    outputs, states, initial_state_phs, zero_states = stacked_rnn_impl.stacked_rnn(
         x, rnn_hidden_sizes, rnn_cell_fn,
         scope='stacked_rnn',
         reuse=reuse)
