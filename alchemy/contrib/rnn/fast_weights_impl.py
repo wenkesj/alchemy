@@ -95,16 +95,20 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
     add = math_ops.add
     multiply = math_ops.multiply
 
-    slow = add(
-        math_ops.matmul(hidden_state, self._kernel_w),
-        nn_ops.bias_add(
-            math_ops.matmul(inputs, self._kernel_c), self._bias_c))
+    slow = array_ops.expand_dims(
+        add(
+            math_ops.matmul(hidden_state, self._kernel_w),
+            nn_ops.bias_add(
+                math_ops.matmul(inputs, self._kernel_c), self._bias_c)),
+            1)
     hidden_state = self._activation(slow)
+
+    squeezed = tf.squeeze(hidden_state, 1)
     fast_weights = add(
         multiply(self._lambda, fast_weights),
         multiply(self._eta, special_math_ops.einsum(
-            "ki,kj->ij", hidden_state, hidden_state)))
-    hidden_state = array_ops.expand_dims(hidden_state, 1)
+            "ki,kj->ij", squeezed, squeezed)))
+
     h = tf.identity(hidden_state)
     for i in range(self._S):
       dot = math_ops.matmul(h, fast_weights)
