@@ -103,7 +103,7 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
             1)
     hidden_state = self._activation(slow)
 
-    squeezed = tf.squeeze(hidden_state, 1)
+    squeezed = array_ops.squeeze(hidden_state, 1)
     fast_weights = add(
         multiply(self._lambda, fast_weights),
         multiply(self._eta, special_math_ops.einsum(
