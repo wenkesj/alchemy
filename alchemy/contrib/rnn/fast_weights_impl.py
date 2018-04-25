@@ -48,7 +48,6 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
                num_units,
                use_layer_norm=True,
                activation=nn_ops.relu,
-               loop_steps=1,
                fast_learning_rate=.5,
                fast_decay_rate=0.95,
                use_bias=True,
@@ -58,9 +57,8 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
     self._num_units = num_units
     self._activation = activation
     self._use_layer_norm = use_layer_norm
-    self._S = loop_steps
-    self._eta = fast_learning_rate
-    self._lambda = fast_decay_rate
+    self._fast_learning_rate = fast_learning_rate
+    self._fast_decay_rate = fast_decay_rate
     self._use_bias = use_bias
 
   @property
@@ -105,16 +103,15 @@ class FastWeightsRNNCell(rnn_cell_impl.LayerRNNCell):
     hidden_state = self._activation(slow)
 
     fast_weights = add(
-        scalar_mul(self._lambda, fast_weights),
-        scalar_mul(self._eta, math_ops.matmul(
+        scalar_mul(self._fast_decay_rate, fast_weights),
+        scalar_mul(self._fast_learning_rate, math_ops.matmul(
             array_ops.transpose(hidden_state, [0, 2, 1]), hidden_state)))
 
     h = array_ops.identity(hidden_state)
-    for i in range(self._S):
-      inner = add(slow, math_ops.matmul(h, fast_weights))
-      h = self._activation(
-          layers.layer_norm(inner)
-          if self._use_layer_norm else inner)
+    inner = add(slow, math_ops.matmul(h, fast_weights))
+    h = self._activation(
+        layers.layer_norm(inner)
+        if self._use_layer_norm else inner)
     hidden_state = gen_array_ops.reshape(h, [batch_size, self._num_units])
     return hidden_state, FastWeightsStateTuple(hidden_state, fast_weights)
 
@@ -130,8 +127,7 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
   def __init__(self,
                num_units,
                use_layer_norm=True,
-               activation=nn_ops.relu,
-               loop_steps=1,
+               activation=None,
                fast_learning_rate=.5,
                fast_decay_rate=0.95,
                forget_bias=1.,
@@ -142,9 +138,8 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
     self._num_units = num_units
     self._activation = activation or nn_ops.relu
     self._use_layer_norm = use_layer_norm
-    self._S = loop_steps
-    self._eta = fast_learning_rate
-    self._lambda = fast_decay_rate
+    self._fast_learning_rate = fast_learning_rate
+    self._fast_decay_rate = fast_decay_rate
     self._forget_bias = forget_bias
     self._layer_norm_scope = layer_norm_scope
 
@@ -197,8 +192,8 @@ class FastWeightsLSTMCell(rnn_cell_impl.LayerRNNCell):
     fast_j = self._activation(j)
     expand_fast_j = array_ops.expand_dims(fast_j, 1)
     fast_weights = add(
-        scalar_mul(self._lambda, fast_weights),
-        scalar_mul(self._eta, math_ops.matmul(
+        scalar_mul(self._fast_learning_rate, fast_weights),
+        scalar_mul(self._fast_decay_rate, math_ops.matmul(
             array_ops.transpose(expand_fast_j, [0, 2, 1]), expand_fast_j)))
 
     fast_weights_j = math_ops.matmul(
