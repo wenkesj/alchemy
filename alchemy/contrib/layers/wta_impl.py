@@ -48,7 +48,7 @@ def wta(inputs, k, name=None, **kwargs):
   return layer.apply(inputs)
 
 
-class DWTA(WTA):
+class DWTA(base.Layer):
   """Applies d-WTA to the input.
   Dropout consists in keeping top-k activations and zero-ing out the rest.
   Arguments:
