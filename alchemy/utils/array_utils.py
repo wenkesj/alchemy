@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import functools
 import numpy as np
+
+from tensorflow.python.ops import gen_array_ops
 
 
 def all_equal(x, y, eps=None):
@@ -12,14 +15,24 @@ def all_equal(x, y, eps=None):
 
 def product(x):
   """Reduce product of x."""
-  return np.prod(x)
+  return functools.reduce(lambda x, y: x * y, x)
 
 def flatten(x):
-  """Flatten x to 1D."""
-  return x.ravel()
+  return gen_array_ops.reshape(x, [product(x.get_shape().as_list())])
 
 def unflatten(x, shapes):
-  """Unflatten a 1D array into `shapes`"""
+  arrays = []
+  start = 0
+  for shape in shapes:
+    end = product(shape)
+    arrays.append(gen_array_ops.reshape(x[start:start+end], shape))
+    start += end
+  return arrays
+
+def nd_flatten(x):
+  return x.ravel()
+
+def nd_unflatten(x, shapes):
   arrays = []
   start = 0
   for shape in shapes:

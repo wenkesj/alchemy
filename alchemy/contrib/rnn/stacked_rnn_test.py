@@ -2,25 +2,32 @@
 from __future__ import absolute_import
 
 import numpy as np
-import tensorflow as tf
+
+from tensorflow.python.framework import dtypes
+from tensorflow.python.framework import ops
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import variables
+from tensorflow.python.platform import test
+from tensorflow.python.client import session
+from tensorflow.contrib import rnn
 
 from alchemy.contrib.rnn import stacked_rnn_impl
 
 
-class RNNTest(tf.test.TestCase):
+class RNNTest(test.TestCase):
 
   def test_stacked_rnn(self):
     cell_fns = [
-      lambda size: tf.contrib.rnn.BasicRNNCell(size),
-      lambda size: tf.contrib.rnn.BasicLSTMCell(size),
-      lambda size: tf.contrib.rnn.LSTMCell(size),
-      lambda size: tf.contrib.rnn.GRUCell(size),
+      lambda size: rnn.BasicRNNCell(size),
+      lambda size: rnn.BasicLSTMCell(size),
+      lambda size: rnn.LSTMCell(size),
+      lambda size: rnn.GRUCell(size),
     ]
 
     for cell_fn in cell_fns:
-      tf.reset_default_graph()
-      dtype = tf.float32
-      inputs_ph = tf.placeholder(dtype, [None, None, 1])
+      ops.reset_default_graph()
+      dtype = dtypes.float32
+      inputs_ph = array_ops.placeholder(dtype, [None, None, 1])
 
       scope = 'stacked_rnn'
       outputs, states, initial_state_phs, zero_states = stacked_rnn_impl.stacked_rnn(
@@ -28,8 +35,8 @@ class RNNTest(tf.test.TestCase):
 
       batch_size = 1
       num_iters = 4
-      with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
+      with session.Session() as sess:
+        sess.run(variables.global_variables_initializer())
 
         initial_states = sess.run(zero_states(batch_size, dtype))
         for _ in range(num_iters):
@@ -43,4 +50,4 @@ class RNNTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  tf.test.main()
+  test.main()

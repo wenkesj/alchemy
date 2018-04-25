@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import tensorflow as tf
+from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import state_ops
+from tensorflow.python.ops import variables
 
 from alchemy.utils import array_utils
 
@@ -12,7 +15,7 @@ def ndims(x):
 
 def normalize(x):
   """Project `x` into the range [0, 1]"""
-  return (x - tf.reduce_min(x)) / (tf.reduce_max(x) - tf.reduce_min(x))
+  return (x - math_ops.reduce_min(x)) / (math_ops.reduce_max(x) - math_ops.reduce_min(x))
 
 def ssd(x, y, extra_dims=2):
   """`Sum Squared over D`: `l2` over `n`-dimensions (starting at `extra_dims`)
@@ -22,11 +25,13 @@ def ssd(x, y, extra_dims=2):
   """
   assert extra_dims >= 0, "extra_dims must be >= 0, got {}".format(extra_dims)
   shape = y.get_shape().as_list()[extra_dims:]
-  return tf.reduce_sum(tf.square(x - y), axis=array_utils.ranged_axes(shape))
+  return math_ops.reduce_sum(math_ops.square(x - y), axis=array_utils.ranged_axes(shape))
 
 def assign_scope(from_scope, to_scope):
   """Return an op that assigns one variable scope to another."""
   assigns = []
-  for dst, src in zip(tf.trainable_variables(to_scope), tf.trainable_variables(from_scope)):
-    assigns.append(tf.assign(dst, src))
-  return tf.group(*assigns)
+  to_vars = variables.trainable_variables(to_scope)
+  from_vars = variables.trainable_variables(from_scope)
+  for dst, src in zip(to_vars, from_vars):
+    assigns.append(state_ops.assign(dst, src))
+  return control_flow_ops.group(*assigns)

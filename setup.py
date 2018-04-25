@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 extras_require = {'contrib': ['pynput', 'vizdoom', 'gym', 'scipy']}
 install_requires = ['tensorflow', 'numpy']
-tests_require = ['gym']
+tests_require = ['gym', 'dm-sonnet']
 
 
 setup(
