@@ -25,12 +25,15 @@ class WTA(base.Layer):
     super(WTA, self).__init__(name=name, **kwargs)
     self.k = ops.convert_to_tensor(k, dtype=dtypes.int32)
 
-  def call(self, inputs):
+  def call(self, inputs, training=False):
     input_dim = inputs.get_shape()[-1].value
     _, indices = nn_ops.top_k(inputs, self.k, sorted=False)
     mask = array_ops.one_hot(indices, input_dim, axis=-1)
     mask = math_ops.reduce_sum(mask, axis=-2)
-    return mask * inputs
+    return utils.smart_cond(
+        training,
+        lambda: mask * inputs,
+        lambda: array_ops.identity(inputs))
 
   def compute_output_shape(self, input_shape):
     return input_shape
