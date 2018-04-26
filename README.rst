@@ -3,7 +3,7 @@
 
 Alchemy is a utility and contrib extension to the base TensorFlow library.
 It includes `notebooks https://github.com/wenkesj/alchemy/blob/experimental/notebooks`
-and tests for recent research papers and my own experiments__.
+and tests for recent research papers and my own experiments.
 
 Getting started
 ===============
@@ -12,7 +12,7 @@ Installing Alchemy requires pip. After that, you're set. Check out these
 `notebooks https://github.com/wenkesj/alchemy/blob/experimental/notebooks` that include
 detailed examples and implementations of recent research and experiments. All notebooks
 were created with `Google Colab colab.research.google.com` and can be opened and edited
-freely!:__
+freely!:
 
 Notebooks
 ---------
@@ -24,7 +24,7 @@ Notebooks
   a demonstration of the model from the paper
   `Fast Weight Long Short-Term Memory https://openreview.net/pdf?id=BJI1eDyvz` which is similar
   to the `tf.contrib.rnn.BasicLSTMCell` API. **TL;DR:** Both of these implementations contribute a
-  significant advantage over their counterparts for short-term memory (hidden state attention):__
+  significant advantage over their counterparts for short-term memory (hidden state attention):
 
   .. image:: https://github.com/wenkesj/alchemy/blob/experimental/docs/fast_weights.png
       :align: center
