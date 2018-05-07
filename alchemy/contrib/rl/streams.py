@@ -49,13 +49,13 @@ class ReplayStream(object):
                action_shape, action_dtype,
                action_value_shape, action_value_dtype,
                reward_shape, reward_dtype):
-    self.state_shape = state_shape
+    self.state_shape = list(state_shape)
     self.state_dtype = type_utils.safe_tf_dtype(state_dtype)
-    self.action_shape = action_shape
+    self.action_shape = list(action_shape)
     self.action_dtype = type_utils.safe_tf_dtype(action_dtype)
-    self.action_value_shape = action_value_shape
+    self.action_value_shape = list(action_value_shape)
     self.action_value_dtype = type_utils.safe_tf_dtype(action_value_dtype)
-    self.reward_shape = reward_shape
+    self.reward_shape = list(reward_shape)
     self.reward_dtype = type_utils.safe_tf_dtype(reward_dtype)
 
   @classmethod
