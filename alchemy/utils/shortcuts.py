@@ -7,6 +7,7 @@ from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import variables
 
 from alchemy.utils import array_utils
+from alchemy.utils import assert_utils
 
 
 def ndims(x):
@@ -23,7 +24,7 @@ def ssd(x, y, extra_dims=2):
   Math:
     ssd(x, y) = sum [l2(x-y)] in range (extra_dims, dims(x|y)]
   """
-  assert extra_dims >= 0, "extra_dims must be >= 0, got {}".format(extra_dims)
+  assert_utils.assert_true(extra_dims >= 0, "extra_dims must be >= 0, got {}".format(extra_dims))
   shape = y.get_shape().as_list()[extra_dims:]
   return math_ops.reduce_sum(math_ops.square(x - y), axis=array_utils.ranged_axes(shape))
 

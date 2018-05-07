@@ -86,13 +86,3 @@ def list_pad_or_truncate(x, maxlen, pad_value=None):
   elif maxlen < length:
     x = x[:maxlen]
   return x
-
-def is_iterable(x):
-  """Return a `True` if `x` is iterable."""
-  try:
-    iter(x)
-    return True
-  except TypeError:
-    return False
-  finally:
-    return True

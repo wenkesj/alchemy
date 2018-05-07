@@ -4,6 +4,8 @@ from __future__ import absolute_import
 import numpy as np
 import string
 
+from alchemy.utils import assert_utils
+
 
 # TODO(wenkesj): add docstring
 # TODO(wenkesj): make this tf.data.Dataset compatible.
@@ -33,8 +35,9 @@ class ART(object):
 
   def create_example(self, k=8, use_modified=False):
     q, r = divmod(k, 2)
-    assert r == 0 and k > 1 and k < self._alphabet_size, \
-        "k must be even, > 1, and < {}".format(self._alphabet_size)
+    assert_utils.assert_true(
+        r == 0 and k > 1 and k < self._alphabet_size,
+        "k must be even, > 1, and < {}".format(self._alphabet_size))
 
     letters = np.random.choice(range(0, self._chars_size), q, replace=False)
     numbers = np.random.choice(
