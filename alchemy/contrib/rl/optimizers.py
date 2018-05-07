@@ -19,5 +19,5 @@ class PolicyGradOptimizer(optimizer.Optimizer):
     self._discounts = ops.convert_to_tensor(discounts, dtype=dtypes.float32)
 
   def apply_gradients(self, grads_and_vars, *args, **kwargs):
-    discounted_grads_and_vars = [(g * self._discounts, v) for g, v in grads_and_vars]
+    discounted_grads_and_vars = [(g * self._discounts, v) for g, v in grads_and_vars if g is not None]
     return self._opt.apply_gradients(discounted_grads_and_vars, *args, **kwargs)
