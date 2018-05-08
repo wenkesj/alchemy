@@ -1,6 +1,10 @@
 /*.egg-info
 /dist
 /build
-/docs/build
+/docs
+/notebooks
+/alchemy
+/README.rst
+/setup.py
 __pycache__
 *.DS_Store

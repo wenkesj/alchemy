@@ -1,0 +1,470 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>alchemy.utils package &mdash; alchemy 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="alchemy.multiprocessing.threading package" href="alchemy.multiprocessing.threading.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> alchemy
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.layers.html">Abstract Layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rl.html">Reinforcement Learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rnn.html">Recurrent Neural Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.train.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Utility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils.array_utils">alchemy.utils.array_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils.assert_utils">alchemy.utils.assert_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils.data_utils">alchemy.utils.data_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils.distribution_utils">alchemy.utils.distribution_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils.sequence_utils">alchemy.utils.sequence_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils.shortcuts">alchemy.utils.shortcuts module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils.type_utils">alchemy.utils.type_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">alchemy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>alchemy.utils package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/alchemy.utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="alchemy-utils-package">
+<h1>alchemy.utils package<a class="headerlink" href="#alchemy-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-alchemy.utils.array_utils">
+<span id="alchemy-utils-array-utils-module"></span><h2>alchemy.utils.array_utils module<a class="headerlink" href="#module-alchemy.utils.array_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.utils.array_utils.all_equal">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">all_equal</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>eps=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.all_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if x == y, if eps is not None, return if abs(x-y) &lt;= eps</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.flatten">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">flatten</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.flatten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.list_pad_or_truncate">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">list_pad_or_truncate</code><span class="sig-paren">(</span><em>x</em>, <em>maxlen</em>, <em>pad_value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.list_pad_or_truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pad or truncate a list <cite>x</cite> with the values <cite>pad_value</cite> and <cite>maxlen</cite>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.nd_expand_dims">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">nd_expand_dims</code><span class="sig-paren">(</span><em>x</em>, <em>n=1</em>, <em>before=True</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.nd_expand_dims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand multiple dimensions, i.e. add 1 after or before</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<dl class="docutils">
+<dt>x = np.reshape(x, [1, 1, 1, 1, 1, 6, 9])</dt>
+<dd>= nd_expand_dims(x, n=5)</dd>
+</dl>
+<p>-or-
+x = np.reshape(x, [6, 9, 1, 1, 1, 1, 1])</p>
+<blockquote class="last">
+<div>= nd_expand_dims(x, n=5, before=False)</div></blockquote>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.nd_flatten">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">nd_flatten</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.nd_flatten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.nd_unflatten">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">nd_unflatten</code><span class="sig-paren">(</span><em>x</em>, <em>shapes</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.nd_unflatten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.partition">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">partition</code><span class="sig-paren">(</span><em>zipped</em>, <em>num_steps</em>, <em>allow_overflow=True</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partition <cite>zipped</cite> into <cite>num_steps</cite>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">if num_steps is not divisible, the rest is added if <cite>allow_overflow</cite>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.product">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">product</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduce product of x.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.ranged_axes">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">ranged_axes</code><span class="sig-paren">(</span><em>shape</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.ranged_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <cite>list</cite> of <cite>int</cite> that represents a range of axes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.array_utils.unflatten">
+<code class="descclassname">alchemy.utils.array_utils.</code><code class="descname">unflatten</code><span class="sig-paren">(</span><em>x</em>, <em>shapes</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.array_utils.unflatten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.utils.assert_utils">
+<span id="alchemy-utils-assert-utils-module"></span><h2>alchemy.utils.assert_utils module<a class="headerlink" href="#module-alchemy.utils.assert_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.utils.assert_utils.assert_false">
+<code class="descclassname">alchemy.utils.assert_utils.</code><code class="descname">assert_false</code><span class="sig-paren">(</span><em>cond</em>, <em>msg='Failed assertion'</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.assert_utils.assert_false" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.assert_utils.assert_true">
+<code class="descclassname">alchemy.utils.assert_utils.</code><code class="descname">assert_true</code><span class="sig-paren">(</span><em>cond</em>, <em>msg='Failed assertion'</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.assert_utils.assert_true" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.assert_utils.is_iterable">
+<code class="descclassname">alchemy.utils.assert_utils.</code><code class="descname">is_iterable</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.assert_utils.is_iterable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <cite>True</cite> if <cite>x</cite> is iterable.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.assert_utils.is_number">
+<code class="descclassname">alchemy.utils.assert_utils.</code><code class="descname">is_number</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.assert_utils.is_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <cite>True</cite> if <cite>x</cite> is a number.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.utils.data_utils">
+<span id="alchemy-utils-data-utils-module"></span><h2>alchemy.utils.data_utils module<a class="headerlink" href="#module-alchemy.utils.data_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.utils.data_utils.generate_dataset">
+<code class="descclassname">alchemy.utils.data_utils.</code><code class="descname">generate_dataset</code><span class="sig-paren">(</span><em>arrays</em>, <em>batch_size</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.data_utils.generate_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate batches, one with respect to each array’s first axis.</p>
+<dl class="docutils">
+<dt>Reference:</dt>
+<dd><a class="reference external" href="https://github.com/edwardlib/observations#how-do-i-use-minibatches-of-data">https://github.com/edwardlib/observations#how-do-i-use-minibatches-of-data</a></dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.data_utils.shuffle_dataset">
+<code class="descclassname">alchemy.utils.data_utils.</code><code class="descname">shuffle_dataset</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.data_utils.shuffle_dataset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.utils.distribution_utils">
+<span id="alchemy-utils-distribution-utils-module"></span><h2>alchemy.utils.distribution_utils module<a class="headerlink" href="#module-alchemy.utils.distribution_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="alchemy.utils.distribution_utils.CustomScaleMixture">
+<em class="property">class </em><code class="descclassname">alchemy.utils.distribution_utils.</code><code class="descname">CustomScaleMixture</code><span class="sig-paren">(</span><em>pi=0.01</em>, <em>sigma1=0.25</em>, <em>sigma2=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.distribution_utils.CustomScaleMixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="alchemy.utils.distribution_utils.CustomScaleMixture.log_prob">
+<code class="descname">log_prob</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.distribution_utils.CustomScaleMixture.log_prob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.distribution_utils.custom_scale_mixture_prior_factory">
+<code class="descclassname">alchemy.utils.distribution_utils.</code><code class="descname">custom_scale_mixture_prior_factory</code><span class="sig-paren">(</span><em>pi=0.01</em>, <em>sigma1=0.25</em>, <em>sigma2=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.distribution_utils.custom_scale_mixture_prior_factory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a prior builder and a posterior builder from the pi, sigma1 and sigma2.</p>
+<p>Example usage:</p>
+<blockquote>
+<div><p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
+import sonnet.python.custom_getters.bayes_by_backprop as bbb</p>
+<dl class="docutils">
+<dt>prior_builder, posterior_builder = custom_scale_mixture_prior_factory(</dt>
+<dd>pi=.01, sigma1=.25, sigma2=.01)</dd>
+</dl>
+<p>sampling_mode_ph = tf.placeholder(tf.string, [])
+get_bbb_variable_fn = bbb.bayes_by_backprop_getter(</p>
+<blockquote>
+<div>posterior_builder=posterior_builder,
+prior_builder=prior_builder,
+kl_builder=bbb.stochastic_kl_builder,
+sampling_mode_tensor=sampling_mode_ph)</div></blockquote>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.distribution_utils.signal_to_noise_ratio">
+<code class="descclassname">alchemy.utils.distribution_utils.</code><code class="descname">signal_to_noise_ratio</code><span class="sig-paren">(</span><em>dist</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.distribution_utils.signal_to_noise_ratio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal to noise ratio of a normal distribution, N(loc, softplus(scale)).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dist</strong> – <cite>tf.distribution.Normal</cite>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.utils.sequence_utils">
+<span id="alchemy-utils-sequence-utils-module"></span><h2>alchemy.utils.sequence_utils module<a class="headerlink" href="#module-alchemy.utils.sequence_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.utils.sequence_utils.mask_sequence">
+<code class="descclassname">alchemy.utils.sequence_utils.</code><code class="descname">mask_sequence</code><span class="sig-paren">(</span><em>lengths</em>, <em>maxlen</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.sequence_utils.mask_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns (mask tensor according to the max of <cite>lengths</cite>, tensor length of each sequence)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.sequence_utils.pad_or_truncate">
+<code class="descclassname">alchemy.utils.sequence_utils.</code><code class="descname">pad_or_truncate</code><span class="sig-paren">(</span><em>x</em>, <em>maxsize</em>, <em>axis=-1</em>, <em>pad_value=0</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.sequence_utils.pad_or_truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pad or truncate the dimension according to <cite>axis</cite> of x by <cite>maxsize</cite>, with <cite>pad_value</cite>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.sequence_utils.shift_right">
+<code class="descclassname">alchemy.utils.sequence_utils.</code><code class="descname">shift_right</code><span class="sig-paren">(</span><em>x</em>, <em>axis=1</em>, <em>rotations=1</em>, <em>pad_value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.sequence_utils.shift_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shift the dimension according to <cite>axis</cite> of <cite>x</cite> right by <cite>rotations</cite>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.utils.shortcuts">
+<span id="alchemy-utils-shortcuts-module"></span><h2>alchemy.utils.shortcuts module<a class="headerlink" href="#module-alchemy.utils.shortcuts" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.utils.shortcuts.assign_scope">
+<code class="descclassname">alchemy.utils.shortcuts.</code><code class="descname">assign_scope</code><span class="sig-paren">(</span><em>from_scope</em>, <em>to_scope</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.shortcuts.assign_scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an op that assigns one variable scope to another.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.shortcuts.ndims">
+<code class="descclassname">alchemy.utils.shortcuts.</code><code class="descname">ndims</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.shortcuts.ndims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the rank of the tensor as int.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.shortcuts.normalize">
+<code class="descclassname">alchemy.utils.shortcuts.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.shortcuts.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project <cite>x</cite> into the range [0, 1]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.utils.shortcuts.ssd">
+<code class="descclassname">alchemy.utils.shortcuts.</code><code class="descname">ssd</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>extra_dims=2</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.shortcuts.ssd" title="Permalink to this definition">¶</a></dt>
+<dd><p><cite>Sum Squared over D</cite>: <cite>l2</cite> over <cite>n</cite>-dimensions (starting at <cite>extra_dims</cite>)</p>
+<dl class="docutils">
+<dt>Math:</dt>
+<dd>ssd(x, y) = sum [l2(x-y)] in range (extra_dims, dims(x|y)]</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.utils.type_utils">
+<span id="alchemy-utils-type-utils-module"></span><h2>alchemy.utils.type_utils module<a class="headerlink" href="#module-alchemy.utils.type_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.utils.type_utils.safe_tf_dtype">
+<code class="descclassname">alchemy.utils.type_utils.</code><code class="descname">safe_tf_dtype</code><span class="sig-paren">(</span><em>dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.utils.type_utils.safe_tf_dtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-alchemy.utils" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="alchemy.multiprocessing.threading.html" class="btn btn-neutral" title="alchemy.multiprocessing.threading package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sam Wenke.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

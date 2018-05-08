@@ -1,0 +1,391 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>alchemy.contrib.rl package &mdash; alchemy 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="alchemy.contrib.rl.envs package" href="alchemy.contrib.rl.envs.html" />
+    <link rel="prev" title="alchemy.contrib.layers package" href="alchemy.contrib.layers.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> alchemy
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.layers.html">Abstract Layers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Reinforcement Learning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="alchemy.contrib.rl.envs.html">alchemy.contrib.rl.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="alchemy.contrib.rl.pg.html">alchemy.contrib.rl.pg package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alchemy-contrib-rl-core-ops-module">alchemy.contrib.rl.core_ops module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.rl.dataset">alchemy.contrib.rl.dataset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.rl.experience">alchemy.contrib.rl.experience module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alchemy-contrib-rl-serialize-module">alchemy.contrib.rl.serialize module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.rl.streams">alchemy.contrib.rl.streams module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.rl">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rnn.html">Recurrent Neural Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.train.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.utils.html">Utility</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">alchemy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>alchemy.contrib.rl package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/alchemy.contrib.rl.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="alchemy-contrib-rl-package">
+<h1>alchemy.contrib.rl package<a class="headerlink" href="#alchemy-contrib-rl-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rl.envs.html">alchemy.contrib.rl.envs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.envs.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="alchemy.contrib.rl.envs.wrappers.html">alchemy.contrib.rl.envs.wrappers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="alchemy.contrib.rl.envs.wrappers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="alchemy.contrib.rl.envs.wrappers.html#alchemy-contrib-rl-envs-wrappers-resolution-wrapper-module">alchemy.contrib.rl.envs.wrappers.resolution_wrapper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="alchemy.contrib.rl.envs.wrappers.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.envs.html#alchemy-contrib-rl-envs-demo-module">alchemy.contrib.rl.envs.demo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.envs.html#alchemy-contrib-rl-envs-doom-module">alchemy.contrib.rl.envs.doom module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.envs.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rl.pg.html">alchemy.contrib.rl.pg package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.pg.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.pg.html#alchemy-contrib-rl-pg-ops-module">alchemy.contrib.rl.pg.ops module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.contrib.rl.pg.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="alchemy-contrib-rl-core-ops-module">
+<h2>alchemy.contrib.rl.core_ops module<a class="headerlink" href="#alchemy-contrib-rl-core-ops-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-alchemy.contrib.rl.dataset">
+<span id="alchemy-contrib-rl-dataset-module"></span><h2>alchemy.contrib.rl.dataset module<a class="headerlink" href="#module-alchemy.contrib.rl.dataset" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.contrib.rl.dataset.ReplayDataset">
+<code class="descclassname">alchemy.contrib.rl.dataset.</code><code class="descname">ReplayDataset</code><span class="sig-paren">(</span><em>replay_stream</em>, <em>max_sequence_length=200</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.dataset.ReplayDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a <cite>tf.data.Dataset</cite> from a <cite>ay.contrib.rl.ReplayStream</cite> instance.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.contrib.rl.experience">
+<span id="alchemy-contrib-rl-experience-module"></span><h2>alchemy.contrib.rl.experience module<a class="headerlink" href="#module-alchemy.contrib.rl.experience" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="alchemy.contrib.rl.experience.Experience">
+<em class="property">class </em><code class="descclassname">alchemy.contrib.rl.experience.</code><code class="descname">Experience</code><a class="headerlink" href="#alchemy.contrib.rl.experience.Experience" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#alchemy.contrib.rl.experience.Experience" title="alchemy.contrib.rl.experience.Experience"><code class="xref py py-class docutils literal notranslate"><span class="pre">alchemy.contrib.rl.experience.Experience</span></code></a></p>
+<p>Represents an experience of memory.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="alchemy.contrib.rl.experience.Replay">
+<em class="property">class </em><code class="descclassname">alchemy.contrib.rl.experience.</code><code class="descname">Replay</code><a class="headerlink" href="#alchemy.contrib.rl.experience.Replay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#alchemy.contrib.rl.experience.Replay" title="alchemy.contrib.rl.experience.Replay"><code class="xref py py-class docutils literal notranslate"><span class="pre">alchemy.contrib.rl.experience.Replay</span></code></a></p>
+<p>Represents a sequence of <a href="#id1"><span class="problematic" id="id2">`</span></a>Experience`s.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="alchemy-contrib-rl-serialize-module">
+<h2>alchemy.contrib.rl.serialize module<a class="headerlink" href="#alchemy-contrib-rl-serialize-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-alchemy.contrib.rl.streams">
+<span id="alchemy-contrib-rl-streams-module"></span><h2>alchemy.contrib.rl.streams module<a class="headerlink" href="#module-alchemy.contrib.rl.streams" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="alchemy.contrib.rl.streams.ReplayStream">
+<em class="property">class </em><code class="descclassname">alchemy.contrib.rl.streams.</code><code class="descname">ReplayStream</code><span class="sig-paren">(</span><em>state_shape</em>, <em>state_dtype</em>, <em>action_shape</em>, <em>action_dtype</em>, <em>action_value_shape</em>, <em>action_value_dtype</em>, <em>reward_shape</em>, <em>reward_dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.ReplayStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A way to handle serializing information to TensorFlow from an environment.</p>
+<dl class="classmethod">
+<dt id="alchemy.contrib.rl.streams.ReplayStream.from_gym_env">
+<em class="property">classmethod </em><code class="descname">from_gym_env</code><span class="sig-paren">(</span><em>env</em>, <em>action_value_shape</em>, <em>action_value_dtype</em>, <em>reward_shape=[]</em>, <em>reward_dtype=tf.float32</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.ReplayStream.from_gym_env" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a <cite>alchemy.contrib.rl.ReplayStream</cite> from a <cite>gym.Env</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>env</strong> – a <cite>gym.Env</cite> instance that has <cite>action_space</cite> and <cite>observation_space</cite> properties.</li>
+<li><strong>action_value_shape</strong> – shape representing the logits for a chosen action.</li>
+<li><strong>action_value_dtype</strong> – dtype representing the logits for a chosen action.</li>
+<li><strong>reward_shape</strong> – shape representing the reward for a chosen action.</li>
+<li><strong>reward_dtype</strong> – dtype representing the reward for a chosen action.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <cite>ay.contrib.rl.ReplayStream</cite>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="alchemy.contrib.rl.streams.ReplayStream.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>limit=1</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.ReplayStream.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="alchemy.contrib.rl.streams.ReplayStream.serialize_replay">
+<code class="descname">serialize_replay</code><span class="sig-paren">(</span><em>replay</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.ReplayStream.serialize_replay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <cite>tf.train.SequenceExample</cite> for the given <cite>ay.contrib.rl.Replay</cite> instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>replay</strong> – <cite>ay.contrib.rl.Replay</cite> instance.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <cite>tf.train.SequenceExample</cite> containing info from the <cite>ay.contrib.rl.Replay</cite>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="alchemy.contrib.rl.streams.ReplayStream.serialize_replay_feature">
+<code class="descname">serialize_replay_feature</code><span class="sig-paren">(</span><em>values</em>, <em>dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.ReplayStream.serialize_replay_feature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="alchemy.contrib.rl.streams.ReplayStream.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>replay</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.ReplayStream.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="alchemy.contrib.rl.streams.SimpleReplayStream">
+<em class="property">class </em><code class="descclassname">alchemy.contrib.rl.streams.</code><code class="descname">SimpleReplayStream</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.SimpleReplayStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#alchemy.contrib.rl.streams.ReplayStream" title="alchemy.contrib.rl.streams.ReplayStream"><code class="xref py py-class docutils literal notranslate"><span class="pre">alchemy.contrib.rl.streams.ReplayStream</span></code></a></p>
+<p>Replay 101.</p>
+<dl class="method">
+<dt id="alchemy.contrib.rl.streams.SimpleReplayStream.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>limit=1</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.SimpleReplayStream.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="alchemy.contrib.rl.streams.SimpleReplayStream.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>replay</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.rl.streams.SimpleReplayStream.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.contrib.rl">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-alchemy.contrib.rl" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="alchemy.contrib.rl.envs.html" class="btn btn-neutral float-right" title="alchemy.contrib.rl.envs package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="alchemy.contrib.layers.html" class="btn btn-neutral" title="alchemy.contrib.layers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sam Wenke.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

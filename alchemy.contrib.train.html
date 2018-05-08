@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>alchemy.contrib.train package &mdash; alchemy 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="alchemy.multiprocessing package" href="alchemy.multiprocessing.html" />
+    <link rel="prev" title="alchemy.contrib.rnn package" href="alchemy.contrib.rnn.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> alchemy
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.layers.html">Abstract Layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rl.html">Reinforcement Learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rnn.html">Recurrent Neural Networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Training</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.train.bbb">alchemy.contrib.train.bbb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.train.sparse">alchemy.contrib.train.sparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.train">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.multiprocessing.html">Multiprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alchemy.utils.html">Utility</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">alchemy</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>alchemy.contrib.train package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/alchemy.contrib.train.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="alchemy-contrib-train-package">
+<h1>alchemy.contrib.train package<a class="headerlink" href="#alchemy-contrib-train-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-alchemy.contrib.train.bbb">
+<span id="alchemy-contrib-train-bbb-module"></span><h2>alchemy.contrib.train.bbb module<a class="headerlink" href="#module-alchemy.contrib.train.bbb" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="alchemy.contrib.train.bbb.assign_pruned_by_bbb_to_template">
+<code class="descclassname">alchemy.contrib.train.bbb.</code><code class="descname">assign_pruned_by_bbb_to_template</code><span class="sig-paren">(</span><em>metadata</em>, <em>pruned_variables</em>, <em>template_variables</em>, <em>from_scope=None</em>, <em>to_scope=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.bbb.assign_pruned_by_bbb_to_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assigns <cite>pruned_variables</cite> to <cite>template_variables</cite> by <cite>bbb</cite> <cite>metadata</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>metadata</strong> – <cite>list</cite> of <cite>bbb._VariableMetadata</cite>, return from
+<cite>bbb.get_variable_metadata()</cite>.</li>
+<li><strong>pruned_variables</strong> – <cite>list</cite> of <cite>tf.SparseTensor</cite>, returned from <cite>prune</cite>.</li>
+<li><strong>template_variables</strong> – <cite>list</cite> of <cite>tf.Variable</cite> corresponding to <cite>metadata</cite>
+variables.</li>
+<li><strong>from_scope</strong> – <cite>str</cite> representing the <cite>pruned_variables</cite> scope.</li>
+<li><strong>to_scope</strong> – <cite>str</cite> representing the <cite>template_variables</cite> scope.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="alchemy.contrib.train.bbb.assign_template_to_prune_by_bbb">
+<code class="descclassname">alchemy.contrib.train.bbb.</code><code class="descname">assign_template_to_prune_by_bbb</code><span class="sig-paren">(</span><em>template_variables</em>, <em>metadata</em>, <em>from_scope=None</em>, <em>to_scope=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.bbb.assign_template_to_prune_by_bbb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="alchemy.contrib.train.bbb.prune_by_bbb">
+<code class="descclassname">alchemy.contrib.train.bbb.</code><code class="descname">prune_by_bbb</code><span class="sig-paren">(</span><em>variable_metadata</em>, <em>percentage</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.bbb.prune_by_bbb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prune a percentage of variables based on their signal to noise ratios.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>variable_metadata</strong> – <cite>list</cite> of <cite>bbb._VariableMetadata</cite>, suggest using
+<cite>bbb.get_variable_metadata()</cite>.</li>
+<li><strong>percentage</strong> – a <cite>tf.Tensor</cite> that is scalar representing what percentage
+of variables to prune.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.contrib.train.sparse">
+<span id="alchemy-contrib-train-sparse-module"></span><h2>alchemy.contrib.train.sparse module<a class="headerlink" href="#module-alchemy.contrib.train.sparse" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="alchemy.contrib.train.sparse.SparseVariableOptimizer">
+<em class="property">class </em><code class="descclassname">alchemy.contrib.train.sparse.</code><code class="descname">SparseVariableOptimizer</code><span class="sig-paren">(</span><em>opt</em>, <em>use_locking=False</em>, <em>name='SparseVariableOptimizer'</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.sparse.SparseVariableOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
+<dl class="method">
+<dt id="alchemy.contrib.train.sparse.SparseVariableOptimizer.apply_gradients">
+<code class="descname">apply_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.sparse.SparseVariableOptimizer.apply_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply gradients to variables.</p>
+<p>This is the second part of <cite>minimize()</cite>. It returns an <cite>Operation</cite> that
+applies gradients.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>grads_and_vars</strong> – List of (gradient, variable) pairs as returned by
+<cite>compute_gradients()</cite>.</li>
+<li><strong>global_step</strong> – Optional <cite>Variable</cite> to increment by one after the
+variables have been updated.</li>
+<li><strong>name</strong> – Optional name for the returned operation.  Default to the
+name passed to the <cite>Optimizer</cite> constructor.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An <cite>Operation</cite> that applies the specified gradients. If <cite>global_step</cite>
+was not None, that operation also increments <cite>global_step</cite>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>grads_and_vars</cite> is malformed.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If none of the variables have gradients.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code> – If you should use <cite>_distributed_apply()</cite> instead.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="alchemy.contrib.train.sparse.SparseVariableOptimizer.get_initializer">
+<code class="descname">get_initializer</code><span class="sig-paren">(</span><em>var_list</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.sparse.SparseVariableOptimizer.get_initializer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-alchemy.contrib.train">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-alchemy.contrib.train" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="alchemy.multiprocessing.html" class="btn btn-neutral float-right" title="alchemy.multiprocessing package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="alchemy.contrib.rnn.html" class="btn btn-neutral" title="alchemy.contrib.rnn package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sam Wenke.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
