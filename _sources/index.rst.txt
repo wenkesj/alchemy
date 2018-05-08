@@ -15,7 +15,8 @@ Installing Alchemy requires pip. After that, you're set.
 
 .. code-block:: bash
 
-   pip install alchemy
+   git clone https://github.com/wenkesj/alchemy
+   (cd alchemy; pip install -e .)
 
 Check out these `notebooks <https://github.com/wenkesj/alchemy/blob/master/notebooks>`_
 that include detailed examples and implementations of recent research and experiments. All notebooks

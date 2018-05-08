@@ -87,9 +87,9 @@
 <li class="toctree-l1"><a class="reference internal" href="alchemy.contrib.rnn.html">Recurrent Neural Networks</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Training</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.train.bbb">alchemy.contrib.train.bbb module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.train.sparse">alchemy.contrib.train.sparse module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-alchemy.contrib.train">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alchemy-contrib-train-bbb-module">alchemy.contrib.train.bbb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alchemy-contrib-train-sparse-module">alchemy.contrib.train.sparse module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="alchemy.multiprocessing.html">Multiprocessing</a></li>
@@ -163,108 +163,14 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-alchemy.contrib.train.bbb">
-<span id="alchemy-contrib-train-bbb-module"></span><h2>alchemy.contrib.train.bbb module<a class="headerlink" href="#module-alchemy.contrib.train.bbb" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="alchemy.contrib.train.bbb.assign_pruned_by_bbb_to_template">
-<code class="descclassname">alchemy.contrib.train.bbb.</code><code class="descname">assign_pruned_by_bbb_to_template</code><span class="sig-paren">(</span><em>metadata</em>, <em>pruned_variables</em>, <em>template_variables</em>, <em>from_scope=None</em>, <em>to_scope=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.bbb.assign_pruned_by_bbb_to_template" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assigns <cite>pruned_variables</cite> to <cite>template_variables</cite> by <cite>bbb</cite> <cite>metadata</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>metadata</strong> – <cite>list</cite> of <cite>bbb._VariableMetadata</cite>, return from
-<cite>bbb.get_variable_metadata()</cite>.</li>
-<li><strong>pruned_variables</strong> – <cite>list</cite> of <cite>tf.SparseTensor</cite>, returned from <cite>prune</cite>.</li>
-<li><strong>template_variables</strong> – <cite>list</cite> of <cite>tf.Variable</cite> corresponding to <cite>metadata</cite>
-variables.</li>
-<li><strong>from_scope</strong> – <cite>str</cite> representing the <cite>pruned_variables</cite> scope.</li>
-<li><strong>to_scope</strong> – <cite>str</cite> representing the <cite>template_variables</cite> scope.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="alchemy.contrib.train.bbb.assign_template_to_prune_by_bbb">
-<code class="descclassname">alchemy.contrib.train.bbb.</code><code class="descname">assign_template_to_prune_by_bbb</code><span class="sig-paren">(</span><em>template_variables</em>, <em>metadata</em>, <em>from_scope=None</em>, <em>to_scope=None</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.bbb.assign_template_to_prune_by_bbb" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="alchemy.contrib.train.bbb.prune_by_bbb">
-<code class="descclassname">alchemy.contrib.train.bbb.</code><code class="descname">prune_by_bbb</code><span class="sig-paren">(</span><em>variable_metadata</em>, <em>percentage</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.bbb.prune_by_bbb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prune a percentage of variables based on their signal to noise ratios.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>variable_metadata</strong> – <cite>list</cite> of <cite>bbb._VariableMetadata</cite>, suggest using
-<cite>bbb.get_variable_metadata()</cite>.</li>
-<li><strong>percentage</strong> – a <cite>tf.Tensor</cite> that is scalar representing what percentage
-of variables to prune.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="section" id="alchemy-contrib-train-bbb-module">
+<h2>alchemy.contrib.train.bbb module<a class="headerlink" href="#alchemy-contrib-train-bbb-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-alchemy.contrib.train.sparse">
-<span id="alchemy-contrib-train-sparse-module"></span><h2>alchemy.contrib.train.sparse module<a class="headerlink" href="#module-alchemy.contrib.train.sparse" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="alchemy.contrib.train.sparse.SparseVariableOptimizer">
-<em class="property">class </em><code class="descclassname">alchemy.contrib.train.sparse.</code><code class="descname">SparseVariableOptimizer</code><span class="sig-paren">(</span><em>opt</em>, <em>use_locking=False</em>, <em>name='SparseVariableOptimizer'</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.sparse.SparseVariableOptimizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
-<dl class="method">
-<dt id="alchemy.contrib.train.sparse.SparseVariableOptimizer.apply_gradients">
-<code class="descname">apply_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.sparse.SparseVariableOptimizer.apply_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply gradients to variables.</p>
-<p>This is the second part of <cite>minimize()</cite>. It returns an <cite>Operation</cite> that
-applies gradients.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>grads_and_vars</strong> – List of (gradient, variable) pairs as returned by
-<cite>compute_gradients()</cite>.</li>
-<li><strong>global_step</strong> – Optional <cite>Variable</cite> to increment by one after the
-variables have been updated.</li>
-<li><strong>name</strong> – Optional name for the returned operation.  Default to the
-name passed to the <cite>Optimizer</cite> constructor.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An <cite>Operation</cite> that applies the specified gradients. If <cite>global_step</cite>
-was not None, that operation also increments <cite>global_step</cite>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>grads_and_vars</cite> is malformed.</li>
-<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If none of the variables have gradients.</li>
-<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code> – If you should use <cite>_distributed_apply()</cite> instead.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="alchemy.contrib.train.sparse.SparseVariableOptimizer.get_initializer">
-<code class="descname">get_initializer</code><span class="sig-paren">(</span><em>var_list</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.contrib.train.sparse.SparseVariableOptimizer.get_initializer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="alchemy-contrib-train-sparse-module">
+<h2>alchemy.contrib.train.sparse module<a class="headerlink" href="#alchemy-contrib-train-sparse-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-alchemy.contrib.train">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-alchemy.contrib.train" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 

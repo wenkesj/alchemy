@@ -90,16 +90,16 @@
 <li class="toctree-l2 current"><a class="reference internal" href="alchemy.multiprocessing.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">alchemy.multiprocessing.threading package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-alchemy.multiprocessing.threading.thread_pool">alchemy.multiprocessing.threading.thread_pool module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-alchemy.multiprocessing.threading.thread_worker">alchemy.multiprocessing.threading.thread_worker module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-alchemy.multiprocessing.threading">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alchemy-multiprocessing-threading-thread-pool-module">alchemy.multiprocessing.threading.thread_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alchemy-multiprocessing-threading-thread-worker-module">alchemy.multiprocessing.threading.thread_worker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="alchemy.multiprocessing.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="alchemy.multiprocessing.html#module-alchemy.multiprocessing.pool">alchemy.multiprocessing.pool module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="alchemy.multiprocessing.html#module-alchemy.multiprocessing">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.multiprocessing.html#alchemy-multiprocessing-pool-module">alchemy.multiprocessing.pool module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alchemy.multiprocessing.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="alchemy.utils.html">Utility</a></li>
@@ -174,86 +174,14 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-alchemy.multiprocessing.threading.thread_pool">
-<span id="alchemy-multiprocessing-threading-thread-pool-module"></span><h2>alchemy.multiprocessing.threading.thread_pool module<a class="headerlink" href="#module-alchemy.multiprocessing.threading.thread_pool" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="alchemy.multiprocessing.threading.thread_pool.ThreadPool">
-<em class="property">class </em><code class="descclassname">alchemy.multiprocessing.threading.thread_pool.</code><code class="descname">ThreadPool</code><span class="sig-paren">(</span><em>num_threads</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.multiprocessing.threading.thread_pool.ThreadPool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Pool of threads consuming tasks from a queue</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_threads</strong> – int
-max number of threads to allow in the pool.</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="alchemy.multiprocessing.threading.thread_pool.ThreadPool.add_task">
-<code class="descname">add_task</code><span class="sig-paren">(</span><em>func</em>, <em>*args</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.multiprocessing.threading.thread_pool.ThreadPool.add_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a task to the queue</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>func</strong> – def|lambda
-task function to be called with <cite>*args</cite> and <cite>**kargs</cite></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="alchemy.multiprocessing.threading.thread_pool.ThreadPool.done">
-<code class="descname">done</code><a class="headerlink" href="#alchemy.multiprocessing.threading.thread_pool.ThreadPool.done" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="alchemy.multiprocessing.threading.thread_pool.ThreadPool.wait_completion">
-<code class="descname">wait_completion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.multiprocessing.threading.thread_pool.ThreadPool.wait_completion" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wait for completion of all the tasks in the queue.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of lists containing returns from the task function.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="alchemy-multiprocessing-threading-thread-pool-module">
+<h2>alchemy.multiprocessing.threading.thread_pool module<a class="headerlink" href="#alchemy-multiprocessing-threading-thread-pool-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-alchemy.multiprocessing.threading.thread_worker">
-<span id="alchemy-multiprocessing-threading-thread-worker-module"></span><h2>alchemy.multiprocessing.threading.thread_worker module<a class="headerlink" href="#module-alchemy.multiprocessing.threading.thread_worker" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="alchemy.multiprocessing.threading.thread_worker.ThreadWorker">
-<em class="property">class </em><code class="descclassname">alchemy.multiprocessing.threading.thread_worker.</code><code class="descname">ThreadWorker</code><span class="sig-paren">(</span><em>tasks</em><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.multiprocessing.threading.thread_worker.ThreadWorker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
-<p>Thread executing tasks from a given task <cite>Queue</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tasks</strong> – <cite>queue.Queue</cite>
-Queue of tasks to consume be consumed.</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="alchemy.multiprocessing.threading.thread_worker.ThreadWorker.run">
-<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#alchemy.multiprocessing.threading.thread_worker.ThreadWorker.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task on the queue and append to <cite>self.results</cite>.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="alchemy-multiprocessing-threading-thread-worker-module">
+<h2>alchemy.multiprocessing.threading.thread_worker module<a class="headerlink" href="#alchemy-multiprocessing-threading-thread-worker-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-alchemy.multiprocessing.threading">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-alchemy.multiprocessing.threading" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
