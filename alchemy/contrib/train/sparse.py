@@ -10,6 +10,14 @@ from tensorflow.python.training import optimizer
 
 
 class SparseVariableOptimizer(optimizer.Optimizer):
+
+  """
+  An `tf.train.Optimizer` that masks gradients w.r.t. Variables by their zero values.
+
+  For example:
+    This can be used to train variables that have been pruned, from `ay.contrib.train.prune_by_bbb`.
+  """
+
   def __init__(self, opt,
                use_locking=False,
                name="SparseVariableOptimizer"):

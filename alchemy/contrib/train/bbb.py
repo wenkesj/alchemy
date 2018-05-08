@@ -18,12 +18,12 @@ def assign_pruned_by_bbb_to_template(metadata, pruned_variables, template_variab
                                      from_scope=None, to_scope=None):
   """Assigns `pruned_variables` to `template_variables` by `bbb` `metadata`.
 
-  Args:
+  Arguments:
     metadata: `list` of `bbb._VariableMetadata`, return from
-      `bbb.get_variable_metadata()`.
+        `bbb.get_variable_metadata()`.
     pruned_variables: `list` of `tf.SparseTensor`, returned from `prune`.
     template_variables: `list` of `tf.Variable` corresponding to `metadata`
-      variables.
+        variables.
     from_scope: `str` representing the `pruned_variables` scope.
     to_scope: `str` representing the `template_variables` scope.
   """
@@ -42,10 +42,10 @@ def assign_pruned_by_bbb_to_template(metadata, pruned_variables, template_variab
 def prune_by_bbb(variable_metadata, percentage):
   """Prune a percentage of variables based on their signal to noise ratios.
 
-    Args:
-      variable_metadata: `list` of `bbb._VariableMetadata`, suggest using
+  Arguments:
+    variable_metadata: `list` of `bbb._VariableMetadata`, suggest using
         `bbb.get_variable_metadata()`.
-      percentage: a `tf.Tensor` that is scalar representing what percentage
+    percentage: a `tf.Tensor` that is scalar representing what percentage
         of variables to prune.
   """
   if not variable_metadata:
@@ -98,6 +98,16 @@ def prune_by_bbb(variable_metadata, percentage):
 
 def assign_template_to_prune_by_bbb(template_variables, metadata,
                                     from_scope=None, to_scope=None):
+  """Assign the mean of a posterior `tf.distributions.Normal` from a template scope.
+
+  Arguments:
+    metadata: `list` of `bbb._VariableMetadata`, return from
+        `bbb.get_variable_metadata()`.
+    template_variables: `list` of `tf.Variable` corresponding to `metadata`
+        variables.
+    from_scope: `str` representing the `template_variables` scope.
+    to_scope: `str` representing the `pruned_variables` scope.
+  """
   lookup_table = {}
   for m in metadata:
     with variable_scope.variable_scope('', reuse=True):

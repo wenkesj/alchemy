@@ -16,10 +16,26 @@ from alchemy.utils import sequence_utils
 from alchemy.utils import type_utils
 from alchemy.contrib.rl import experience
 from alchemy.contrib.rl import streams
+from alchemy.contrib.rl import serialize
 
 
 def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
-  """Creates a `tf.data.Dataset` from a `ay.contrib.rl.ReplayStream` instance."""
+  """Creates a `tf.data.Dataset` from a `ay.contrib.rl.ReplayStream` instance.
+
+  Arguments:
+    replay_stream: `ay.contrib.rl.ReplayStream` instance. Must implement `replay_stream.read`.
+        The method is called `replay_stream.read(limit=max_sequence_length)` each time an instance
+        is requested by the dataset. This method should return `None` or raise an
+        `tf.errors.OutOfRangeError` when the stream is done and execution of the dataset should stop.
+        `replay_stream.read` should always return a `tf.SequenceExample` proto.
+
+  Returns:
+    A `tf.data.Dataset`.
+
+  Raises:
+    An `tf.errors.OutOfRangeError` when the stream returns a `None` or raises
+        `tf.errors.OutOfRangeError`.
+  """
   assert_utils.assert_true(
       isinstance(replay_stream, streams.ReplayStream),
       '`replay_stream` must be an instance of `ay.contrib.rl.ReplayStream`')
@@ -45,7 +61,7 @@ def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
     }
 
     def convert_to_safe_feature_type(dtype):
-      return type_utils.safe_tf_dtype(streams.type_to_feature[dtype][-1])
+      return type_utils.safe_tf_dtype(serialize.type_to_feature[dtype][-1])
 
     replay_features = {
       'state': parsing_ops.FixedLenSequenceFeature(
@@ -77,7 +93,7 @@ def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
         replay_example = None
         try:
           replay_example = replay_stream.read(limit=max_sequence_length)
-        except:
+        except errors_impl.OutOfRangeError:
           raise errors_impl.OutOfRangeError()
         if replay_example is None:
           raise errors_impl.OutOfRangeError()
