@@ -28,12 +28,3 @@ To install the latest version of Alchemy (in development mode):
 
   git clone https://github.com/wenkesj/alchemy
   (cd alchemy; pip install -e .)
-
-Library install
----------------
-
-To install the latest PyPI release as a library (in user mode):
-
-.. code-block:: bash
-
-  pip install --user alchemy
