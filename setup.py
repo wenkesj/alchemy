@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 
-install_requires = ['tensorflow', 'numpy', 'dm-sonnet', 'pynput', 'vizdoom', 'gym', 'scipy']
+install_requires = ['tensorflow', 'numpy', 'dm-sonnet', 'pynput', 'gym']
 
 setup(
   name='alchemy',
