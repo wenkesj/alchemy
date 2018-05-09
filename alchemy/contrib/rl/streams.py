@@ -7,6 +7,7 @@ from gym.core import Space
 import numpy as np
 
 from tensorflow.python.framework import dtypes
+from tensorflow.python.framework import errors_impl
 
 from alchemy.utils import assert_utils
 from alchemy.utils import type_utils
@@ -102,7 +103,7 @@ class ReplayStream(object):
       `AssertionError` when replay is not an `ay.rl.Replay` instance.
     """
     return serialize.serialize_replay(
-        replay, 
+        replay,
         self.state_dtype,
         self.action_dtype,
         self.action_value_dtype,
@@ -146,5 +147,5 @@ class SimpleReplayStream(ReplayStream):
 
   def read(self, limit=1):
     if not self.memory:
-      return None
+      raise errors_impl.OutOfRangeError()
     return self.memory.pop(0)

@@ -8,6 +8,7 @@ from tensorflow.python.framework import errors_impl
 from tensorflow.python.data.ops import dataset_ops
 from tensorflow.python.ops import parsing_ops
 from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import array_ops
 
 from alchemy.utils import array_utils
@@ -93,16 +94,23 @@ def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
         replay_example = None
         try:
           replay_example = replay_stream.read(limit=max_sequence_length)
-        except errors_impl.OutOfRangeError:
-          raise errors_impl.OutOfRangeError()
-        if replay_example is None:
-          raise errors_impl.OutOfRangeError()
-        yield replay_example.SerializeToString()
+        except:
+          yield ""
+        else:
+          yield replay_example.SerializeToString()
 
     def serialize_map(replay_example_str):
       """Parse each example string to `tf.Tensor`."""
-      _, replay = parsing_ops.parse_single_sequence_example(
-          replay_example_str, sequence_features=replay_features)
+      try:
+        assert_op = control_flow_ops.Assert(
+            replay_example_str != "",
+            [replay_example_str])
+        with ops.control_dependencies([assert_op]):
+          _, replay = parsing_ops.parse_single_sequence_example(
+              replay_example_str, sequence_features=replay_features)
+      except errors_impl.InvalidArgumentError:
+        raise errors_impl.OutOfRangeError()
+
       return convert_and_fix_dtypes(replay)
 
     def pad_or_truncate_map(replay):

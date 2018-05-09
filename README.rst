@@ -7,7 +7,8 @@
 
 Alchemy is a utility and contrib extension to the base TensorFlow library.
 It includes `notebooks <https://github.com/wenkesj/alchemy/blob/master/notebooks>`_
-and tests for recent research papers and my own experiments.
+and tests for recent research papers and my own RRR (Repeatable Reportable Research) experiments.
+
 
 Getting started
 ===============
@@ -16,8 +17,7 @@ Installing Alchemy requires pip. After that, you're set. Check out these
 `notebooks <https://github.com/wenkesj/alchemy/blob/master/notebooks>`_ that include
 detailed examples and implementations of recent research and experiments. All notebooks
 were created with `Google Colab <colab.research.google.com>`_ and can be opened and edited
-freely!:
-
+freely!
 
 Developer install
 -----------------
