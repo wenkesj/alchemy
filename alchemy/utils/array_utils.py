@@ -10,7 +10,9 @@ from tensorflow.python.ops import gen_array_ops
 def all_equal(x, y, eps=None):
   """Return if x == y, if eps is not None, return if abs(x-y) <= eps"""
   if eps:
-    return all([abs(i - j) <= eps for i, j in zip(x, y)])
+    return all([abs(i - j) <= eps
+                for i, j in zip(x, y)
+                if i is not None and j is not None])
   return all([i == j for i, j in zip(x, y)])
 
 def product(x):

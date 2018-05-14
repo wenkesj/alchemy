@@ -7,12 +7,13 @@ from gym.core import Space
 import numpy as np
 
 from tensorflow.python.framework import dtypes
+from tensorflow.python.framework import tensor_shape
 from tensorflow.python.framework import errors_impl
 
 from alchemy.utils import assert_utils
+from alchemy.utils import distribution_utils
 from alchemy.utils import type_utils
 from alchemy.contrib.rl import serialize
-
 
 
 class ReplayStream(object):
@@ -48,15 +49,15 @@ class ReplayStream(object):
     self.reward_dtype = type_utils.safe_tf_dtype(reward_dtype)
 
   @classmethod
-  def from_gym_env(cls, env,
-                   action_value_shape, action_value_dtype,
-                   reward_shape=[], reward_dtype=dtypes.float32):
+  def from_distributions(cls,
+                         state_distribution, action_distribution,
+                         reward_shape=[], reward_dtype=dtypes.float32):
     """Construct a `alchemy.contrib.rl.ReplayStream` from a `gym.Env`.
 
     Arguments:
       env: a `gym.Env` instance that has `action_space` and `observation_space` properties.
-      action_value_shape: shape representing the logits for a chosen action.
-      action_value_dtype: dtype representing the logits for a chosen action.
+      state_distribution: distribution of the state space.
+      action_distribution: distribution of the action space.
       reward_shape: shape representing the reward for a chosen action.
       reward_dtype: dtype representing the reward for a chosen action.
 
@@ -64,30 +65,25 @@ class ReplayStream(object):
       A `ay.contrib.rl.ReplayStream`.
     """
     assert_utils.assert_true(
-        isinstance(env, Env),
-        '`env` must be an instance of `gym.Env`')
+        distribution_utils.is_distribution(state_distribution),
+        '`state_distribution` must be an instance of `tf.distributions.Distribution`')
     assert_utils.assert_true(
-        env.action_space is not None,
-        '`env.action_space` property must be set.')
-    assert_utils.assert_true(
-        isinstance(env.action_space, Space),
-        '`env.action_space` must be an instance of `gym.Space`')
-    assert_utils.assert_true(
-        env.observation_space is not None,
-        '`env.observation_space` property must be set.')
-    assert_utils.assert_true(
-        isinstance(env.observation_space, Space),
-        '`env.observation_space` must be an instance of `gym.Space`')
+        distribution_utils.is_distribution(action_distribution),
+        '`action_distribution` must be an instance of `tf.distributions.Distribution`')
 
-    state_shape = env.observation_space.shape
-    state_dtype = type_utils.safe_tf_dtype(env.observation_space.dtype)
-    action_shape = env.action_space.shape
-    action_dtype = type_utils.safe_tf_dtype(env.action_space.dtype)
+    state_shape, state_dtype = distribution_utils.logits_shape_and_dtype(
+        state_distribution)
+    action_value_shape, action_value_dtype = distribution_utils.logits_shape_and_dtype(
+        action_distribution)
+    action_shape, action_dtype = distribution_utils.sample_shape_and_dtype(
+        action_distribution)
+    if isinstance(reward_shape, tensor_shape.TensorShape):
+      reward_shape = reward_shape.as_list()
 
     return cls(
         state_shape, state_dtype,
         action_shape, action_dtype,
-        action_value_shape, type_utils.safe_tf_dtype(action_value_dtype),
+        action_value_shape, action_value_dtype,
         reward_shape, type_utils.safe_tf_dtype(reward_dtype))
 
   def serialize_replay(self, replay):
@@ -132,14 +128,14 @@ class ReplayStream(object):
     raise NotImplementedError('Must implement `write` method.')
 
 
-class SimpleReplayStream(ReplayStream):
+class FIFO(ReplayStream):
 
   """
-  A simple, FIFO replay memory.
+  A FIFO replay memory.
   """
 
   def __init__(self, *args, **kwargs):
-    super(SimpleReplayStream, self).__init__(*args, **kwargs)
+    super(FIFO, self).__init__(*args, **kwargs)
     self.memory = []
 
   def write(self, replay):
@@ -149,3 +145,23 @@ class SimpleReplayStream(ReplayStream):
     if not self.memory:
       raise errors_impl.OutOfRangeError()
     return self.memory.pop(0)
+
+
+class Uniform(ReplayStream):
+
+  """
+  A uniform-sampling replay memory.
+  """
+
+  def __init__(self, *args, **kwargs):
+    super(Uniform, self).__init__(*args, **kwargs)
+    self.memory = []
+
+  def write(self, replay):
+    self.memory.append(self.serialize_replay(replay))
+
+  def read(self, limit=1):
+    if not self.memory:
+      raise errors_impl.OutOfRangeError()
+    index = np.random.randint(len(self.memory))
+    return self.memory.pop(index)

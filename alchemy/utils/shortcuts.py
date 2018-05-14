@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import variables
@@ -9,6 +10,9 @@ from tensorflow.python.ops import variables
 from alchemy.utils import array_utils
 from alchemy.utils import assert_utils
 
+
+def placeholder_like(ph, name=None):
+  return array_ops.placeholder(ph.dtype, ph.shape, name=name)
 
 def ndims(x):
   """Return the rank of the tensor as int."""

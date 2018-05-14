@@ -12,6 +12,11 @@ from tensorflow.python.ops import array_ops
 from alchemy.utils import shortcuts
 
 
+def expand_dims(x, axes):
+  for axis in axes:
+    x = array_ops.expand_dims(x, axis=axis)
+  return x
+
 def mask_sequence(lengths, maxlen, dtype=dtypes.float32):
   """Returns (mask tensor according to the max of `lengths`, tensor length of each sequence)"""
   sequence_length_mask = math_ops.cast(array_ops.sequence_mask(lengths, maxlen=maxlen), dtype)

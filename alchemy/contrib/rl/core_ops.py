@@ -11,12 +11,13 @@ from tensorflow.python.ops import variable_scope
 from alchemy.utils import shortcuts
 
 
-def discount_rewards(rewards, max_sequence_length, discount=.95, time_major=False):
+def discount_rewards(rewards, max_sequence_length, weights=1., discount=.95, time_major=False):
   """Compute and return the discounted/filtered reward.
 
   Arguments:
     rewards: 1D or 2D `tf.Tensor`, contiguous sequence(s) of rewards.
     max_sequence_length: `int`, maximum length(s) of rewards tensor.
+    weights: `tf.Tensor`, the weights/mask to apply to the result.
     discount: 0D scalar `tf.Tensor`, the discount factor (gamma).
     time_major: `Boolean`, if rewards is 2D and already time_major, i.e. [time, batch_size].
 
@@ -26,7 +27,9 @@ def discount_rewards(rewards, max_sequence_length, discount=.95, time_major=Fals
   Returns:
     Tensor with the same shape as `rewards`.
   """
+  weights = ops.convert_to_tensor(weights, dtype=rewards.dtype)
   discount = ops.convert_to_tensor(discount, dtype=rewards.dtype)
+
   dims = shortcuts.ndims(rewards)
   shape = array_ops.shape(rewards)
 
@@ -66,4 +69,5 @@ def discount_rewards(rewards, max_sequence_length, discount=.95, time_major=Fals
        discounted_reward])
 
   discounted_reward = discounted_reward.stack()
-  return discounted_reward if time_major else array_ops.transpose(discounted_reward)
+  discounted_reward = discounted_reward if time_major else array_ops.transpose(discounted_reward)
+  return discounted_reward * weights

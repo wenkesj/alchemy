@@ -8,7 +8,52 @@ from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops import random_ops
-from tensorflow.contrib import distributions
+from tensorflow.python.ops.distributions import distribution
+from tensorflow.python.ops.distributions import categorical
+from tensorflow.python.ops.distributions import bernoulli
+from tensorflow.python.ops.distributions import beta
+from tensorflow.python.ops.distributions import normal
+
+from alchemy.utils import type_utils
+
+
+epsilon = 1e-6
+
+def is_distribution(dist):
+  return isinstance(dist, distribution.Distribution)
+
+def is_categorical(dist):
+  return isinstance(dist, categorical.Categorical)
+
+def is_bernoulli(dist):
+  return isinstance(dist, bernoulli.Bernoulli)
+
+def is_beta(dist):
+  return isinstance(dist, beta.Beta)
+
+def is_normal(dist):
+  return isinstance(dist, normal.Normal)
+
+
+def distribution_like(logits, dist):
+  return dist.__class__(logits=logits)
+
+
+def logits_shape_and_dtype(dist):
+  if is_categorical(dist) or is_bernoulli(dist):
+    shape = dist.logits.shape.as_list()[2:]
+    dtype = type_utils.safe_tf_dtype(dist.logits.dtype)
+  elif is_beta(dist):
+    shape = dist.concentration1.shape.as_list()[2:]
+    dtype = type_utils.safe_tf_dtype(dist.concentration1.dtype)
+  else:
+    raise TypeError('`dist` not supported: {}'.format(type(dist)))
+  return shape, dtype
+
+def sample_shape_and_dtype(dist):
+  shape = dist.event_shape.as_list()[2:]
+  dtype = type_utils.safe_tf_dtype(dist.dtype)
+  return shape, dtype
 
 
 class CustomScaleMixture(object):
@@ -17,8 +62,8 @@ class CustomScaleMixture(object):
         np.float32, (0.0, pi, sigma1, sigma2))
 
   def log_prob(self, x):
-    n1 = distributions.Normal(self.mu, self.sigma1)
-    n2 = distributions.Normal(self.mu, self.sigma2)
+    n1 = normal.Normal(self.mu, self.sigma1)
+    n2 = normal.Normal(self.mu, self.sigma2)
     mix1 = math_ops.reduce_sum(n1.log_prob(x), -1) + math_ops.log(self.pi)
     mix2 = math_ops.reduce_sum(n2.log_prob(x), -1) + math_ops.log(np.float32(1.0 - self.pi))
     prior_mix = array_ops.stack([mix1, mix2])
@@ -54,7 +99,7 @@ def custom_scale_mixture_prior_factory(pi=.01, sigma1=.25, sigma2=.01):
 
   def custom_posterior_builder(getter, name, *args, **kwargs):
     del args
-    parameter_shapes = distributions.Normal.param_static_shapes(
+    parameter_shapes = normal.Normal.param_static_shapes(
         kwargs.get("shape"))
 
     dtype = kwargs.get("dtype", dtypes.float32)
@@ -77,7 +122,7 @@ def custom_scale_mixture_prior_factory(pi=.01, sigma1=.25, sigma2=.01):
             maxval=np.log(np.exp(prior_stddev / 1.0) - 1.0),
             dtype=dtype,
             shape=parameter_shapes["scale"]))
-    return distributions.Normal(
+    return normal.Normal(
         loc=loc_var,
         scale=nn_ops.softplus(scale_var) + 1e-5,
         name="{}/posterior_dist".format(name))
