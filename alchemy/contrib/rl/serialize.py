@@ -58,7 +58,8 @@ def serialize_replay(replay,
                      state_dtype,
                      action_dtype,
                      action_value_dtype,
-                     reward_dtype):
+                     reward_dtype,
+                     with_values=False):
   """Returns a `tf.train.SequenceExample` for the given `ay.contrib.rl.Replay` instance.
 
   Arguments:
@@ -67,6 +68,7 @@ def serialize_replay(replay,
     action_dtype: dtype of the action space.
     action_value_dtype: dtype of the action-values space.
     reward_dtype: dtype of the reward space.
+    with_values: Python `bool` for recording values.
 
   Returns:
     A `tf.train.SequenceExample` containing info from the `ay.contrib.rl.Replay`.
@@ -74,9 +76,14 @@ def serialize_replay(replay,
   Raises:
     `AssertionError` when replay is not an `ay.rl.Replay` instance.
   """
-  assert_utils.assert_true(
-      isinstance(replay, experience.Replay),
-      '`replay` must be an instance of `ay.contrib.rl.Replay`')
+  if with_values:
+    assert_utils.assert_true(
+        isinstance(replay, experience.ReplayWithValues),
+        '`replay` must be an instance of `ay.contrib.rl.ReplayWithValues`')
+  else:
+    assert_utils.assert_true(
+        isinstance(replay, experience.Replay),
+        '`replay` must be an instance of `ay.contrib.rl.Replay`')
 
   feature_list = {
     'state': tf.train.FeatureList(
@@ -101,5 +108,11 @@ def serialize_replay(replay,
         feature=serialize_replay_feature(
             [replay.sequence_length], dtype=dtypes.int32)),
   }
+
+  if with_values:
+    feature_list['value'] = tf.train.FeatureList(
+        feature=serialize_replay_feature(
+            replay.value, dtype=reward_dtype))
+
   feature_lists = tf.train.FeatureLists(feature_list=feature_list)
   return tf.train.SequenceExample(feature_lists=feature_lists)

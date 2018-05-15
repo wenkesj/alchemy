@@ -44,6 +44,7 @@ def pad_or_truncate(x, maxsize, axis=-1, pad_value=0):
 
   return control_flow_ops.cond(size > maxsize, truncate, pad)
 
+
 def shift_right(x, axis=1, rotations=1, pad_value=None):
   """Shift the dimension according to `axis` of `x` right by `rotations`."""
   rank = shortcuts.ndims(x)

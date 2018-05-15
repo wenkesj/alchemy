@@ -86,7 +86,7 @@ class PGTest(test.TestCase):
         action_distribution, exploration_op, deterministic_ph))
 
     # Setup the dataset
-    stream = streams.FIFO.from_distributions(
+    stream = streams.Uniform.from_distributions(
         state_distribution, action_distribution)
     replay_dataset = dataset.ReplayDataset(
         stream, max_sequence_length=PGTest.hparams.max_sequence_length)
@@ -97,6 +97,8 @@ class PGTest(test.TestCase):
         stream.action_value_dtype, [None, None] + stream.action_value_shape, name='action')
     reward_ph = array_ops.placeholder(
         stream.reward_dtype, [None, None] + stream.reward_shape, name='reward')
+    terminal_ph = array_ops.placeholder(
+        dtypes.bool, [None, None], name='terminal')
     sequence_length_ph = array_ops.placeholder(
         dtypes.int32, [None, 1], name='sequence_length')
     sequence_length = array_ops.squeeze(sequence_length_ph, -1)
@@ -106,13 +108,13 @@ class PGTest(test.TestCase):
         reward_ph,
         sequence_length=sequence_length,
         max_sequence_length=PGTest.hparams.max_sequence_length,
-        weights=(1 - math_ops.cast(replay_op.terminal, reward_ph.dtype)),
+        weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=PGTest.hparams.discount)
     loss_op = action_distribution.cross_entropy(
         distribution_utils.distribution_like(action_value_ph, action_distribution),
         name='cross_entropy')
     loss_op *= advantage_op
-    loss_op += action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
+    loss_op += -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
             sequence_length, loss_op.dtype))
@@ -140,6 +142,7 @@ class PGTest(test.TestCase):
                 state_ph: replay.state,
                 action_value_ph: replay.action_value,
                 reward_ph: replay.reward,
+                terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
               })
 

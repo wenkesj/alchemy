@@ -26,7 +26,8 @@ class ReplayStream(object):
                state_shape, state_dtype,
                action_shape, action_dtype,
                action_value_shape, action_value_dtype,
-               reward_shape, reward_dtype):
+               reward_shape, reward_dtype,
+               with_values=False):
     """Creates a new instance by the given shapes and dtypes.
 
     Arguments:
@@ -38,6 +39,7 @@ class ReplayStream(object):
       action_value_dtype: dtype of the action-values space.
       reward_shape: shape of the reward space.
       reward_dtype: dtype of the reward space.
+      with_values: Python `bool` for recording values.
     """
     self.state_shape = list(state_shape)
     self.state_dtype = type_utils.safe_tf_dtype(state_dtype)
@@ -47,11 +49,13 @@ class ReplayStream(object):
     self.action_value_dtype = type_utils.safe_tf_dtype(action_value_dtype)
     self.reward_shape = list(reward_shape)
     self.reward_dtype = type_utils.safe_tf_dtype(reward_dtype)
+    self.with_values = with_values
 
   @classmethod
   def from_distributions(cls,
                          state_distribution, action_distribution,
-                         reward_shape=[], reward_dtype=dtypes.float32):
+                         reward_shape=[], reward_dtype=dtypes.float32,
+                         with_values=False):
     """Construct a `alchemy.contrib.rl.ReplayStream` from a `gym.Env`.
 
     Arguments:
@@ -60,6 +64,7 @@ class ReplayStream(object):
       action_distribution: distribution of the action space.
       reward_shape: shape representing the reward for a chosen action.
       reward_dtype: dtype representing the reward for a chosen action.
+      with_values: Python `bool` for recording values.
 
     Returns:
       A `ay.contrib.rl.ReplayStream`.
@@ -84,26 +89,29 @@ class ReplayStream(object):
         state_shape, state_dtype,
         action_shape, action_dtype,
         action_value_shape, action_value_dtype,
-        reward_shape, type_utils.safe_tf_dtype(reward_dtype))
+        reward_shape, type_utils.safe_tf_dtype(reward_dtype),
+        with_values=with_values)
 
   def serialize_replay(self, replay):
-    """Returns a `tf.train.SequenceExample` for the given `ay.contrib.rl.Replay` instance.
+    """Returns a `tf.train.SequenceExample` for the given replay instance.
 
     Arguments:
-      replay: `ay.contrib.rl.Replay` instance.
+      replay: `ay.contrib.rl.Replay` or `ay.contrib.rl.ReplayWithValues` instance.
 
     Returns:
-      A `tf.train.SequenceExample` containing info from the `ay.contrib.rl.Replay`.
+      A `tf.train.SequenceExample` from `ay.contrib.rl.Replay` or `ay.contrib.rl.ReplayWithValues`
 
     Raises:
-      `AssertionError` when replay is not an `ay.rl.Replay` instance.
+      `AssertionError` when replay is not an `ay.contrib.rl.Replay` or
+          `ay.contrib.rl.ReplayWithValues` instance.
     """
     return serialize.serialize_replay(
         replay,
         self.state_dtype,
         self.action_dtype,
         self.action_value_dtype,
-        self.reward_dtype)
+        self.reward_dtype,
+        with_values=self.with_values)
 
   def read(self, limit=1):
     """Read a `tf.train.SequenceExample` from memory.
@@ -120,10 +128,10 @@ class ReplayStream(object):
     raise NotImplementedError('Must implement `read` method.')
 
   def write(self, replay):
-    """Write and serialize an `ay.contrib.rl.Replay` instance to memory.
+    """Write an `ay.contrib.rl.Replay` or `ay.contrib.rl.ReplayWithValues` instance to memory.
 
     Arguments:
-      replay: An `ay.contrib.rl.Replay` instance.
+      replay: An `ay.contrib.rl.Replay` or `ay.contrib.rl.ReplayWithValues` instance.
     """
     raise NotImplementedError('Must implement `write` method.')
 

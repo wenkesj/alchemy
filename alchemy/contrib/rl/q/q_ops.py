@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import gen_array_ops
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import nn_ops
 
@@ -14,6 +16,24 @@ from alchemy.contrib.rl import core_ops
 def slow_gather(params, indices):
   mask = array_ops.one_hot(indices, array_ops.shape(params)[-1])
   return math_ops.reduce_sum(mask * params, -1)
+
+
+def gather_along_second_axis(data, indices):
+  """Super-weird way to select by a dimension.
+  This can be refactored into a single call with an axis argument.
+  """
+  ndims = len(data.get_shape().as_list())
+  shape = array_ops.shape(data)
+  re_shape = [shape[0] * shape[1]]
+  indices = array_ops.reshape(indices, re_shape)
+  for idx in range(2, ndims):
+    re_shape.append(shape[idx])
+  data = array_ops.reshape(data, re_shape)
+  batch_offset = math_ops.range(0, array_ops.shape(data)[0])
+  flat_indices = array_ops.stack([batch_offset, indices], axis=1)
+  two_d = gen_array_ops.gather_nd(data, flat_indices)
+  three_d = gen_array_ops.reshape(two_d, [shape[0], shape[1], -1])
+  return three_d
 
 
 def expected_q_value(reward, action, action_value, next_action_value, weights=1., discount=.95):
@@ -38,38 +58,46 @@ def expected_q_value(reward, action, action_value, next_action_value, weights=1.
   weights = ops.convert_to_tensor(weights, dtype=reward.dtype)
   discount = ops.convert_to_tensor(discount, dtype=reward.dtype)
 
-  q_value = slow_gather(action_value, action)
+  lda = action_value.get_shape()[-1].value
+  q_value = gather_along_second_axis(action_value, action)
+  q_value.set_shape([None, None, lda])
 
   if isinstance(next_action_value, tuple) or isinstance(next_action_value, list):
     assert_utils.assert_true(
         len(next_action_value) == 2,
         '`next_action_value` must be a `tuple` of length = 2')
     next_action_value, target_next_action_value = next_action_value
-    next_q_value = slow_gather(
-        target_next_action_value,
-        math_ops.argmax(next_action_value, -1))
-  else:
-    next_q_value = slow_gather(
+    lda = next_action_value.get_shape()[-1].value
+    next_q_value = gather_along_second_axis(
         next_action_value,
-        math_ops.argmax(next_action_value, -1))
+        math_ops.argmax(target_next_action_value, -1, output_type=dtypes.int32))
+    next_q_value.set_shape([None, None, lda])
+  else:
+    lda = next_action_value.get_shape()[-1].value
+    next_q_value = gather_along_second_axis(
+        next_action_value,
+        math_ops.argmax(next_action_value, -1, output_type=dtypes.int32))
+    next_q_value.set_shape([None, None, lda])
 
   expected_q_value = reward + discount * next_q_value * weights
   return (q_value, expected_q_value)
 
 
-def q_quantile(q_dist):
+def q_quantile(q_dist, expected_q_dist):
   shape = array_ops.shape(q_dist)
   batch_size, sequence_size = shape[0], shape[1]
-  k = q_dist.get_shape()[-1].value
-  _, quantile_idx = nn_ops.top_k(q_dist, k=k) # sort quantiles in ascending order
-  quantile_idx = array_ops.reverse(quantile_idx, [-1])
+  num_quantiles = q_dist.get_shape()[-1].value
 
-  # midpoint quantile targets
-  tau_hat = math_ops.linspace(0.0, 1.0 - 1. / k, k) + .5 / k
-  tau_hat = sequence_utils.expand_dims(tau_hat, axes=[0, 1])
-  tau_hat = array_ops.tile(tau_hat, [batch_size, sequence_size, 1])
+  big_expected_q_dist = array_ops.transpose(
+      gen_array_ops.reshape(
+          array_ops.tile(
+              expected_q_dist, [1, 1, num_quantiles]),
+          [batch_size, sequence_size, num_quantiles, num_quantiles]),
+      perm=[0, 1, 3, 2])
 
-  # I've got 51 cumulative prob(lem)s ;)
-  tau_op = slow_gather(
-      array_ops.expand_dims(tau_hat, -1), quantile_idx)
-  return tau_op
+  big_q_dist = gen_array_ops.reshape(
+      array_ops.tile(
+          q_dist,
+          [1, 1, num_quantiles]),
+      [batch_size, sequence_size, num_quantiles, num_quantiles])
+  return (big_q_dist, big_expected_q_dist)

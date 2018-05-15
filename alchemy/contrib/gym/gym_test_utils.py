@@ -43,3 +43,48 @@ def rollout_on_gym_env(sess,
       stream.write(replay)
     rewards += sum(replay.reward)
   return rewards
+
+
+def rollout_with_values_on_gym_env(sess,
+                                   env,
+                                   state_ph,
+                                   deterministic_ph,
+                                   action_value_op,
+                                   action_op,
+                                   value_op,
+                                   num_episodes=1,
+                                   deterministic=False,
+                                   stream=None,
+                                   save_replay=True):
+  if stream is None and save_replay:
+    raise ValueError('missing `stream` to `save_replay`.')
+
+  rewards = 0.
+  for episode in range(num_episodes):
+    experiences = []
+    next_state = env.reset()
+    while True:
+      state = next_state
+      action_value, action, value = sess.run(
+          (action_value_op, action_op, value_op),
+          feed_dict={
+              state_ph: [[state]],
+              deterministic_ph: deterministic
+          })
+
+      next_state, reward, terminal, _ = env.step(action)
+      experiences.append(experience.ExperienceWithValues(
+          state, next_state,
+          action, action_value,
+          value,
+          reward, terminal))
+
+      if terminal:
+        break
+    replay = experience.ReplayWithValues(
+        *zip(*experiences),
+        sequence_length=len(experiences))
+    if save_replay:
+      stream.write(replay)
+    rewards += sum(replay.reward)
+  return rewards

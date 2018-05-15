@@ -12,7 +12,7 @@ from tensorflow.python.framework import random_seed
 from tensorflow.python.platform import test
 from tensorflow.contrib.training.python.training import hparam
 from tensorflow.python.layers import core
-from tensorflow.python.ops.losses import losses_impl
+
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import gen_array_ops
 from tensorflow.python.ops import math_ops
@@ -23,7 +23,6 @@ from tensorflow.python.ops import random_ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import variables
 from tensorflow.python.ops import variable_scope
-from tensorflow.python.ops.losses import losses_impl
 from tensorflow.python.training import training_util
 from tensorflow.python.training import learning_rate_decay
 from tensorflow.python.training import adam
@@ -31,6 +30,7 @@ from tensorflow.python.training import adam
 from alchemy.utils import distribution_utils
 from alchemy.utils import shortcuts
 from alchemy.utils import sequence_utils
+from alchemy.contrib.losses import losses_impl
 from alchemy.contrib.rl import dataset
 from alchemy.contrib.rl import experience
 from alchemy.contrib.rl import streams
@@ -52,17 +52,17 @@ class QTest(test.TestCase):
 
   hparams = hparam.HParams(
       learning_rate=1.25e-3,
-      hidden_layers=[16],
+      hidden_layers=[8],
       initial_exploration=.5,
       discount=.99,
       exploration_decay_steps=256 // 16 * 25,
       exploration_decay_rate=.99,
-      entropy_coeff=.01,
-      max_sequence_length=200,
+      max_sequence_length=1,
       num_episodes=256,
       batch_size=16,
       num_iterations=100,
       assign_target_steps=10 * 16,
+      huber_loss_delta=1.,
       num_quantiles=51)
 
   @test_util.skip_if(True)
@@ -92,6 +92,8 @@ class QTest(test.TestCase):
           env.action_space, logits=[action_value_op], name='action_space')
       action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
           action_distribution, exploration_op, deterministic_ph))
+    policy_variables = variables.trainable_variables(scope='logits')
+
 
     next_state_ph = shortcuts.placeholder_like(state_ph, name='next_state_space')
     with variable_scope.variable_scope('logits', reuse=True):
@@ -136,7 +138,7 @@ class QTest(test.TestCase):
             sequence_length, loss_op.dtype))
     optimizer = adam.AdamOptimizer(
         learning_rate=QTest.hparams.learning_rate)
-    train_op = optimizer.minimize(loss_op)
+    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
@@ -170,7 +172,7 @@ class QTest(test.TestCase):
             deterministic=True, save_replay=False)
         print('average_rewards = {}'.format(rewards / QTest.hparams.num_episodes))
 
-  @test_util.skip_if(True)
+  # @test_util.skip_if(True)
   def test_q_ops_double_dqn(self):
     env = gym.make('CartPole-v0')
     ops.reset_default_graph()
@@ -197,6 +199,8 @@ class QTest(test.TestCase):
           env.action_space, logits=[action_value_op], name='action_space')
       action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
           action_distribution, exploration_op, deterministic_ph))
+    policy_variables = variables.trainable_variables(scope='logits')
+
 
     next_state_ph = shortcuts.placeholder_like(state_ph, name='next_state_space')
     with variable_scope.variable_scope('logits', reuse=True):
@@ -248,7 +252,7 @@ class QTest(test.TestCase):
             sequence_length, loss_op.dtype))
     optimizer = adam.AdamOptimizer(
         learning_rate=QTest.hparams.learning_rate)
-    train_op = optimizer.minimize(loss_op)
+    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
     train_op = control_flow_ops.cond(
         gen_math_ops.equal(
             gen_math_ops.mod(
@@ -260,6 +264,8 @@ class QTest(test.TestCase):
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
+      sess.run(assign_target_op)
+
       for iteration in range(QTest.hparams.num_iterations):
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
@@ -290,7 +296,7 @@ class QTest(test.TestCase):
             deterministic=True, save_replay=False)
         print('average_rewards = {}'.format(rewards / QTest.hparams.num_episodes))
 
-  #@test_util.skip_if(True)
+  @test_util.skip_if(True)
   def test_q_ops_quantile_dqn(self):
     env = gym.make('CartPole-v0')
     ops.reset_default_graph()
@@ -333,10 +339,11 @@ class QTest(test.TestCase):
       mean_action_value_op = math_ops.reduce_mean(action_value_op, axis=-1)
       action_op = math_ops.argmax( mean_action_value_op, axis=-1)
       action_op = array_ops.squeeze(action_op)
+    policy_variables = variables.trainable_variables(scope='logits')
 
 
     next_state_ph = shortcuts.placeholder_like(state_ph, name='next_state_space')
-    with variable_scope.variable_scope('target_logits'):
+    with variable_scope.variable_scope('targets'):
       target_next_action_value_op = mlp(next_state_ph, QTest.hparams.hidden_layers)
       target_next_action_value_op = core.dense(
           target_next_action_value_op,
@@ -350,6 +357,8 @@ class QTest(test.TestCase):
           QTest.hparams.num_quantiles]
       target_next_action_value_op = gen_array_ops.reshape(
           target_next_action_value_op, target_next_action_value_shape)
+      mean_target_next_action_value_op = math_ops.reduce_mean(
+          target_next_action_value_op, axis=-1)
     assign_target_op = shortcuts.assign_scope('logits', 'target_logits')
 
 
@@ -369,38 +378,34 @@ class QTest(test.TestCase):
         dtypes.int32, [None, 1], name='sequence_length')
     sequence_length = array_ops.squeeze(sequence_length_ph, -1)
 
-    action = sequence_utils.expand_dims(action_ph, axes=[-1])
-    action = array_ops.tile(action, [1, 1, QTest.hparams.num_quantiles])
-
-    action_value_op = array_ops.transpose(
-        action_value_op, perm=[0, 1, 3, 2])
-    target_next_action_value_op = array_ops.transpose(
-        target_next_action_value_op, perm=[0, 1, 3, 2])
-
     q_value_op, expected_q_value_op = q_ops.expected_q_value(
         array_ops.expand_dims(reward_ph, -1),
-        action,
+        action_ph,
         action_value_op,
-        target_next_action_value_op,
+        (target_next_action_value_op, mean_target_next_action_value_op),
         weights=array_ops.expand_dims(
             1 - math_ops.cast(terminal_ph, reward_ph.dtype), -1),
         discount=QTest.hparams.discount)
-    tau_op = q_ops.q_quantile(q_value_op)
 
-    # huber loss & quantile loss
-    loss_op = losses_impl.huber_loss(
-        q_value_op, expected_q_value_op,
-        reduction=losses_impl.Reduction.NONE)
-    u = q_value_op - expected_q_value_op # TODO(wenkesj): don't recompute this
+    u = expected_q_value_op - q_value_op
+    loss_op = losses_impl.huber_loss(u, delta=QTest.hparams.huber_loss_delta)
+
+    tau_op = (2. * math_ops.range(
+        0, QTest.hparams.num_quantiles, dtype=u.dtype) + 1) / (
+            2. * QTest.hparams.num_quantiles)
+
     loss_op *= math_ops.abs(tau_op - math_ops.cast(u < 0, tau_op.dtype))
+
     loss_op = math_ops.reduce_mean(loss_op, axis=-1)
+    # loss_op = math_ops.reduce_mean(loss_op, axis=-2)
+    # loss_op = math_ops.reduce_sum(loss_op, axis=-1)
 
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
             sequence_length, loss_op.dtype))
     optimizer = adam.AdamOptimizer(
         learning_rate=QTest.hparams.learning_rate)
-    train_op = optimizer.minimize(loss_op)
+    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
     train_op = control_flow_ops.cond(
         gen_math_ops.equal(
             gen_math_ops.mod(
@@ -412,6 +417,8 @@ class QTest(test.TestCase):
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
+      sess.run(assign_target_op)
+
       for iteration in range(QTest.hparams.num_iterations):
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
@@ -434,7 +441,6 @@ class QTest(test.TestCase):
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
               })
-          print(loss)
 
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,

@@ -61,6 +61,9 @@ def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
       'sequence_length': dtypes.int32,
     }
 
+    if replay_stream.with_values:
+      replay_dtypes['value'] = reward_dtype
+
     def convert_to_safe_feature_type(dtype):
       return type_utils.safe_tf_dtype(serialize.type_to_feature[dtype][-1])
 
@@ -80,6 +83,10 @@ def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
       'sequence_length': parsing_ops.FixedLenSequenceFeature(
           shape=[], dtype=convert_to_safe_feature_type(dtypes.int32)),
     }
+
+    if replay_stream.with_values:
+      replay_features['value'] = parsing_ops.FixedLenSequenceFeature(
+          shape=reward_shape, dtype=convert_to_safe_feature_type(reward_dtype))
 
     def convert_and_fix_dtypes(replay):
       """Cast dtypes back to their original types."""
@@ -115,7 +122,13 @@ def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
 
     def pad_or_truncate_map(replay):
       """Truncate or pad replays."""
-      replay = experience.Replay(**replay)
+      with_values = 'value' in replay
+
+      if with_values:
+        replay = experience.ReplayWithValues(**replay)
+      else:
+        replay = experience.Replay(**replay)
+
       sequence_length = math_ops.minimum(
           max_sequence_length, replay.sequence_length)
       sequence_length.set_shape([1])
@@ -149,6 +162,22 @@ def ReplayDataset(replay_stream, max_sequence_length=200, name=None):
           replay.terminal, max_sequence_length,
           axis=0, pad_value=ops.convert_to_tensor(False))
       terminal.set_shape([max_sequence_length])
+
+      if with_values:
+        value = sequence_utils.pad_or_truncate(
+            replay.value, max_sequence_length,
+            axis=0, pad_value=0)
+        value.set_shape([max_sequence_length] + reward_shape)
+
+        return experience.ReplayWithValues(
+            state=state,
+            next_state=next_state,
+            action=action,
+            action_value=action_value,
+            value=value,
+            reward=reward,
+            terminal=terminal,
+            sequence_length=sequence_length)
 
       return experience.Replay(
           state=state,
