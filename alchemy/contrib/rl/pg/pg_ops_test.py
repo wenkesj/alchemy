@@ -46,7 +46,7 @@ class PGTest(test.TestCase):
 
   hparams = hparam.HParams(
       learning_rate=1.25e-3,
-      hidden_layers=[8],
+      hidden_layers=[16, 16],
       initial_exploration=.5,
       discount=.99,
       exploration_decay_steps=256 // 16 * 25,

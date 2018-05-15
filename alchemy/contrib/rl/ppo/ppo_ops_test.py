@@ -60,7 +60,8 @@ class PPOTest(test.TestCase):
       exploration_decay_steps=256 // 16 * 25,
       exploration_decay_rate=.99,
       entropy_coeff=.01,
-      value_coeff=1.,
+      value_coeff=.01,
+      value_units=16,
       assign_policy_steps=64,
       max_sequence_length=200,
       num_episodes=256,
@@ -94,6 +95,9 @@ class PPOTest(test.TestCase):
           env.action_space, logits=[body_op], name='action_space')
       action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
           action_distribution, exploration_op, deterministic_ph))
+      body_op = core.dense(
+          body_op, units=PPOTest.hparams.value_units,
+          activation=nn_ops.relu, use_bias=False)
       value_op = array_ops.squeeze(core.dense(body_op, units=1, use_bias=False), -1)
     policy_variables = variables.trainable_variables(scope='logits')
 
@@ -156,11 +160,10 @@ class PPOTest(test.TestCase):
     ratio = math_ops.exp(logits_prob - old_logits_prob)
     clipped_ratio = clip_ops.clip_by_value(
         ratio, 1. - PPOTest.hparams.epsilon, 1. + PPOTest.hparams.epsilon)
-    actor_loss_op = math_ops.minimum(ratio * advantage_op, clipped_ratio * advantage_op)
-    critic_loss_op = math_ops.square(return_op - value_op) * PPOTest.hparams.value_coeff
+    actor_loss_op = -math_ops.minimum(ratio * advantage_op, clipped_ratio * advantage_op)
+    critic_loss_op = math_ops.square(value_op - return_op) * PPOTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PPOTest.hparams.entropy_coeff
-    loss_op = actor_loss_op - critic_loss_op + entropy_loss_op
-    loss_op = -loss_op
+    loss_op = actor_loss_op + critic_loss_op + entropy_loss_op
 
     # total loss
     loss_op = math_ops.reduce_mean(
@@ -207,6 +210,7 @@ class PPOTest(test.TestCase):
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
               })
+          print(loss)
 
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,

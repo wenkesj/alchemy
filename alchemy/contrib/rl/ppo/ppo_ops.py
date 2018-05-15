@@ -8,11 +8,13 @@ from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import variable_scope
+from tensorflow.python.layers import normalization
 
 from alchemy.utils import assert_utils
+from alchemy.utils import distribution_utils
 from alchemy.utils import shortcuts
 from alchemy.utils import sequence_utils
-from alchemy.contrib.rl.pg import pg_ops
+from alchemy.contrib.rl import core_ops
 
 
 def generalized_advantage_estimate(rewards,
@@ -43,12 +45,33 @@ def generalized_advantage_estimate(rewards,
   next_values = sequence_utils.shift_right(values)
   delta_t = rewards + discount * next_values - values
 
-  advantage_op = pg_ops.advantage(
+  advantage_op = discounted_op = core_ops.discount_rewards(
       delta_t,
-      sequence_length,
       max_sequence_length=max_sequence_length,
       weights=weights,
       discount=discount * lambda_td,
       time_major=time_major)
 
-  return advantage_op, advantage_op + values
+  advantage_op.set_shape([None, max_sequence_length])
+  returns = advantage_op + values
+
+  return standardize(advantage_op, sequence_length, max_sequence_length), returns
+
+
+def standardize(op, length, max_length):
+  mask = math_ops.cast(array_ops.sequence_mask(length, maxlen=max_length), op.dtype)
+
+  length_expanded = array_ops.expand_dims(length, -1)
+  mean_op = math_ops.cumsum(
+      op, axis=-1, reverse=False) / math_ops.cast(
+          length_expanded, op.dtype)
+  mean_op *= mask
+
+  diff_op = op - mean_op
+  stdv_op = math_ops.sqrt(
+      math_ops.cumsum(
+          diff_op, axis=-1, reverse=False) / math_ops.cast(
+              length_expanded, op.dtype))
+  stdv_op *= mask
+  return ((diff_op + distribution_utils.epsilon) / (
+      stdv_op + distribution_utils.epsilon)) * mask

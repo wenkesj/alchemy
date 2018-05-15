@@ -52,7 +52,7 @@ class QTest(test.TestCase):
 
   hparams = hparam.HParams(
       learning_rate=1.25e-3,
-      hidden_layers=[8],
+      hidden_layers=[16, 16],
       initial_exploration=.5,
       discount=.99,
       exploration_decay_steps=256 // 16 * 25,
@@ -337,7 +337,7 @@ class QTest(test.TestCase):
           QTest.hparams.num_quantiles]
       action_value_op = gen_array_ops.reshape(action_value_op, action_value_shape)
       mean_action_value_op = math_ops.reduce_mean(action_value_op, axis=-1)
-      action_op = math_ops.argmax( mean_action_value_op, axis=-1)
+      action_op = math_ops.argmax(mean_action_value_op, axis=-1)
       action_op = array_ops.squeeze(action_op)
     policy_variables = variables.trainable_variables(scope='logits')
 
@@ -395,10 +395,7 @@ class QTest(test.TestCase):
             2. * QTest.hparams.num_quantiles)
 
     loss_op *= math_ops.abs(tau_op - math_ops.cast(u < 0, tau_op.dtype))
-
     loss_op = math_ops.reduce_mean(loss_op, axis=-1)
-    # loss_op = math_ops.reduce_mean(loss_op, axis=-2)
-    # loss_op = math_ops.reduce_sum(loss_op, axis=-1)
 
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
