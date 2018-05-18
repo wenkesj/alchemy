@@ -13,6 +13,7 @@ from tensorflow.contrib.training.python.training import hparam
 from tensorflow.python.layers import core
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import gen_math_ops
 from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import random_ops
@@ -48,12 +49,13 @@ class PGTest(test.TestCase):
       learning_rate=1.25e-3,
       hidden_layers=[16, 16],
       initial_exploration=.5,
+      use_dropout_exploration=False,
       discount=.99,
-      exploration_decay_steps=256 // 16 * 25,
+      exploration_decay_steps=64,
       exploration_decay_rate=.99,
       entropy_coeff=.01,
-      max_sequence_length=200,
-      num_episodes=256,
+      max_sequence_length=33,
+      num_episodes=32,
       batch_size=16,
       num_iterations=100)
 
@@ -79,11 +81,18 @@ class PGTest(test.TestCase):
 
     with variable_scope.variable_scope('logits'):
       action_value_op = mlp(state_ph, PGTest.hparams.hidden_layers)
+      if PGTest.hparams.use_dropout_exploration:
+        action_value_op = core.Dropout(exploration_op)(
+            action_value_op, gen_math_ops.logical_not(deterministic_ph))
 
     action_distribution, action_value_op = gym_ops.distribution_from_gym_space(
         env.action_space, logits=[action_value_op], name='action_space')
-    action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
-        action_distribution, exploration_op, deterministic_ph))
+
+    if PGTest.hparams.use_dropout_exploration:
+      action_op = array_ops.squeeze(action_distribution.mode())
+    else:
+      action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
+          action_distribution, exploration_op, deterministic_ph))
 
     # Setup the dataset
     stream = streams.Uniform.from_distributions(
@@ -125,6 +134,7 @@ class PGTest(test.TestCase):
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
       for iteration in range(PGTest.hparams.num_iterations):
+
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
             action_value_op, action_op,
@@ -144,6 +154,7 @@ class PGTest(test.TestCase):
                 reward_ph: replay.reward,
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
+                deterministic_ph: True,
               })
 
         rewards = gym_test_utils.rollout_on_gym_env(

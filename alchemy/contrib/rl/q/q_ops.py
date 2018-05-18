@@ -13,11 +13,6 @@ from alchemy.utils import sequence_utils
 from alchemy.contrib.rl import core_ops
 
 
-def slow_gather(params, indices):
-  mask = array_ops.one_hot(indices, array_ops.shape(params)[-1])
-  return math_ops.reduce_sum(mask * params, -1)
-
-
 def gather_along_second_axis(data, indices):
   """Super-weird way to select by a dimension.
   This can be refactored into a single call with an axis argument.
@@ -36,16 +31,17 @@ def gather_along_second_axis(data, indices):
   return three_d
 
 
-def expected_q_value(reward, action, action_value, next_action_value, weights=1., discount=.95):
+def expected_q_value(reward, action, action_value, next_action_value, max_sequence_length, weights=1., discount=.95):
   """Computes the expected q returns and values.
 
   This covers architectures such as DQN, Double-DQN, Dueling-DQN and Noisy-DQN.
 
   Arguments:
-    rewards: 1D or 2D `tf.Tensor`, contiguous sequence(s) of rewards.
+    reward: 1D or 2D `tf.Tensor`, contiguous sequence(s) of rewards.
     action: 1D or 2D `tf.Tensor`, contiguous sequence(s) of actions.
     next_action_value: `tf.Tensor`, `list` or `tuple` of 2 `tf.Tensor`s, where the first entry is
         the `model(next_state) = action_value`, and the second is `target(next_state) = action_value`
+    max_sequence_length: `int` or `list`, maximum length(s) of rewards.
     weights: `tf.Tensor`, the weights/mask to apply to the result.
     discount: 0D scalar, the discount factor (gamma).
 
@@ -60,7 +56,7 @@ def expected_q_value(reward, action, action_value, next_action_value, weights=1.
 
   lda = action_value.get_shape()[-1].value
   q_value = gather_along_second_axis(action_value, action)
-  q_value.set_shape([None, None, lda])
+  q_value.set_shape([None, max_sequence_length, lda])
 
   if isinstance(next_action_value, tuple) or isinstance(next_action_value, list):
     assert_utils.assert_true(
@@ -71,15 +67,17 @@ def expected_q_value(reward, action, action_value, next_action_value, weights=1.
     next_q_value = gather_along_second_axis(
         next_action_value,
         math_ops.argmax(target_next_action_value, -1, output_type=dtypes.int32))
-    next_q_value.set_shape([None, None, lda])
+    next_q_value.set_shape([None, max_sequence_length, lda])
   else:
     lda = next_action_value.get_shape()[-1].value
     next_q_value = gather_along_second_axis(
         next_action_value,
         math_ops.argmax(next_action_value, -1, output_type=dtypes.int32))
-    next_q_value.set_shape([None, None, lda])
+    next_q_value.set_shape([None, max_sequence_length, lda])
 
-  expected_q_value = reward + discount * next_q_value * weights
+  expected_q_value = array_ops.expand_dims(
+      reward, -1) + discount * next_q_value * array_ops.expand_dims(
+          weights, -1)
   return (q_value, expected_q_value)
 
 

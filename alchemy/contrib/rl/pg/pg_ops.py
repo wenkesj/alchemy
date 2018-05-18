@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from tensorflow.python.ops import math_ops
-from tensorflow.python.ops import array_ops
-
+from alchemy.utils import distribution_utils
+from alchemy.utils import shortcuts
 from alchemy.contrib.rl import core_ops
 
 
-def advantage(rewards, sequence_length, max_sequence_length, weights=1., discount=.95, time_major=False):
+def advantage(rewards, sequence_length, max_sequence_length,
+              weights=1.,
+              discount=.95,
+              time_major=False,
+              normalize_advantages=True):
   """Compute the advantage based on the baseline discounted rewards.
 
   Arguments:
@@ -27,17 +30,13 @@ def advantage(rewards, sequence_length, max_sequence_length, weights=1., discoun
       weights=weights,
       discount=discount,
       time_major=time_major)
+  discounted_reward_op.set_shape([None, max_sequence_length])
 
-  sequence_length_expanded = array_ops.expand_dims(sequence_length, -1)
-  baseline_op = math_ops.cumsum(
-      discounted_reward_op,
-      axis=-1,
-      reverse=False) / math_ops.cast(
-          sequence_length_expanded,
-          discounted_reward_op.dtype)
+  aggregate_baseline = shortcuts.cummean(
+      discounted_reward_op, sequence_length, max_sequence_length)
 
-  baseline_op *= math_ops.cast(
-      array_ops.sequence_mask(
-          sequence_length, maxlen=max_sequence_length),
-      baseline_op.dtype)
-  return discounted_reward_op - baseline_op
+  discounted_reward_op = discounted_reward_op - aggregate_baseline
+
+  if normalize_advantages:
+    return shortcuts.batch_norm(discounted_reward_op)
+  return discounted_reward_op

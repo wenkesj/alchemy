@@ -4,10 +4,12 @@ from __future__ import absolute_import
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import nn_impl
 from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import variables
 
 from alchemy.utils import array_utils
+from alchemy.utils import distribution_utils
 from alchemy.utils import assert_utils
 
 
@@ -18,9 +20,46 @@ def ndims(x):
   """Return the rank of the tensor as int."""
   return len(x.get_shape())
 
-def normalize(x):
+def normalize(x, axis=-1):
   """Project `x` into the range [0, 1]"""
-  return (x - math_ops.reduce_min(x)) / (math_ops.reduce_max(x) - math_ops.reduce_min(x))
+  min_x = array_ops.expand_dims(math_ops.reduce_min(x, axis=axis), axis)
+  return (x - min_x) / (array_ops.expand_dims(math_ops.reduce_max(x, axis=axis), axis) - min_x)
+
+def batch_norm(op):
+  mean_op = array_ops.expand_dims(
+      math_ops.reduce_mean(
+          op, axis=0), 0)
+
+  diff_op = op - mean_op
+  stdv_op = math_ops.sqrt(
+      array_ops.expand_dims(
+          math_ops.reduce_mean(
+              math_ops.square(diff_op), axis=0), 0))
+  return ((op - mean_op) + distribution_utils.epsilon) / (
+      stdv_op + distribution_utils.epsilon)
+
+def cummean(op, length, max_length):
+  mask = math_ops.cast(array_ops.sequence_mask(length, maxlen=max_length), op.dtype)
+  length_expanded = array_ops.expand_dims(length, -1)
+  mean_op = math_ops.cumsum(
+      op, axis=-1, reverse=False) / math_ops.cast(
+          length_expanded, op.dtype)
+  return mean_op * mask
+
+def cumstdv(op, mean_op, length, max_length):
+  mask = math_ops.cast(array_ops.sequence_mask(length, maxlen=max_length), op.dtype)
+  length_expanded = array_ops.expand_dims(length, -1)
+  stdv_op = math_ops.sqrt(
+      math_ops.cumsum(
+          op - mean_op, axis=-1, reverse=False) / math_ops.cast(
+              length_expanded, op.dtype))
+  return stdv_op * mask
+
+def cumstandardize(op, length, max_length):
+  mean_op = cummean(op, length, max_length)
+  stdv_op = cumstdv(op, mean_op, length, max_length)
+  return ((op - mean_op) + distribution_utils.epsilon) / (
+      stdv_op + distribution_utils.epsilon) * mask
 
 def ssd(x, y, extra_dims=2):
   """`Sum Squared over D`: `l2` over `n`-dimensions (starting at `extra_dims`)

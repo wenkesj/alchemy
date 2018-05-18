@@ -2,18 +2,12 @@
 from __future__ import absolute_import
 
 from tensorflow.python.framework import ops
-from tensorflow.python.framework import constant_op
-from tensorflow.python.ops import tensor_array_ops
-from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
-from tensorflow.python.ops import control_flow_ops
-from tensorflow.python.ops import variable_scope
-from tensorflow.python.layers import normalization
+from tensorflow.python.ops import array_ops
 
-from alchemy.utils import assert_utils
-from alchemy.utils import distribution_utils
 from alchemy.utils import shortcuts
 from alchemy.utils import sequence_utils
+from alchemy.utils import distribution_utils
 from alchemy.contrib.rl import core_ops
 
 
@@ -24,7 +18,8 @@ def generalized_advantage_estimate(rewards,
                                    weights=1.,
                                    discount=.9,
                                    lambda_td=.95,
-                                   time_major=False):
+                                   time_major=False,
+                                   normalize_advantages=True):
   """Computes the GAE algorithm.
 
   Arguments:
@@ -40,37 +35,29 @@ def generalized_advantage_estimate(rewards,
   Returns:
     `tuple` of Tensors with the same shape as `rewards`: (advantages, returns).
   """
+  discount = ops.convert_to_tensor(discount, dtype=rewards.dtype)
   lambda_td = ops.convert_to_tensor(lambda_td, dtype=rewards.dtype)
-  next_values = sequence_utils.shift_right(values)
-  delta_t = rewards + discount * next_values - values
 
-  advantage_op = discounted_op = core_ops.discount_rewards(
-      delta_t,
+  mask = math_ops.cast(
+      array_ops.sequence_mask(
+          sequence_length, maxlen=max_sequence_length),
+      rewards.dtype)
+  batch_size = array_ops.shape(values)[0]
+  next_values = array_ops.concat(
+      [values[:, 1:], array_ops.zeros([batch_size, 1])],
+      axis=-1)
+  delta = (rewards + discount * next_values - values) * weights
+
+  advantage_op = core_ops.discount_rewards(
+      delta,
       max_sequence_length=max_sequence_length,
       weights=weights,
       discount=discount * lambda_td,
       time_major=time_major)
 
-  advantage_op.set_shape([None, max_sequence_length])
-  returns = advantage_op + values
+  returns_op = advantage_op + values
+  returns_op.set_shape([None, max_sequence_length])
 
-  return standardize(advantage_op, sequence_length, max_sequence_length), returns
-
-
-def standardize(op, length, max_length):
-  mask = math_ops.cast(array_ops.sequence_mask(length, maxlen=max_length), op.dtype)
-
-  length_expanded = array_ops.expand_dims(length, -1)
-  mean_op = math_ops.cumsum(
-      op, axis=-1, reverse=False) / math_ops.cast(
-          length_expanded, op.dtype)
-  mean_op *= mask
-
-  diff_op = op - mean_op
-  stdv_op = math_ops.sqrt(
-      math_ops.cumsum(
-          diff_op, axis=-1, reverse=False) / math_ops.cast(
-              length_expanded, op.dtype))
-  stdv_op *= mask
-  return ((diff_op + distribution_utils.epsilon) / (
-      stdv_op + distribution_utils.epsilon)) * mask
+  if normalize_advantages:
+    advantage_op = shortcuts.batch_norm(advantage_op)
+  return advantage_op, returns_op

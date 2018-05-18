@@ -57,7 +57,7 @@ class QTest(test.TestCase):
       discount=.99,
       exploration_decay_steps=256 // 16 * 25,
       exploration_decay_rate=.99,
-      max_sequence_length=1,
+      max_sequence_length=4,
       num_episodes=256,
       batch_size=16,
       num_iterations=100,
@@ -127,6 +127,7 @@ class QTest(test.TestCase):
         action_ph,
         action_value_op,
         next_action_value_op,
+        max_sequence_length=QTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=QTest.hparams.discount)
 
@@ -135,10 +136,13 @@ class QTest(test.TestCase):
 
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
-            sequence_length, loss_op.dtype))
+            array_ops.expand_dims(sequence_length, -1), loss_op.dtype))
     optimizer = adam.AdamOptimizer(
         learning_rate=QTest.hparams.learning_rate)
-    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
+    train_op = optimizer.minimize(
+        loss_op,
+        var_list=policy_variables,
+        global_step=global_step)
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
@@ -242,6 +246,7 @@ class QTest(test.TestCase):
         action_ph,
         action_value_op,
         (next_action_value_op, target_next_action_value_op),
+        max_sequence_length=QTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=QTest.hparams.discount)
 
@@ -249,22 +254,19 @@ class QTest(test.TestCase):
     loss_op = math_ops.square(q_value_op - expected_q_value_op)
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
-            sequence_length, loss_op.dtype))
+            array_ops.expand_dims(sequence_length, -1), loss_op.dtype))
     optimizer = adam.AdamOptimizer(
         learning_rate=QTest.hparams.learning_rate)
-    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
-    train_op = control_flow_ops.cond(
-        gen_math_ops.equal(
-            gen_math_ops.mod(
-                ops.convert_to_tensor(
-                    QTest.hparams.assign_target_steps, dtype=dtypes.int64),
-                (global_step + 1)), 0),
-        lambda: control_flow_ops.group(*[train_op, assign_target_op]),
-        lambda: train_op)
+    train_op = optimizer.minimize(
+        loss_op,
+        var_list=policy_variables,
+        global_step=global_step)
+
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
       sess.run(assign_target_op)
+      idx = 0
 
       for iteration in range(QTest.hparams.num_iterations):
         rewards = gym_test_utils.rollout_on_gym_env(
@@ -288,6 +290,9 @@ class QTest(test.TestCase):
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
               })
+          if (idx + 1) % QTest.hparams.assign_target_steps == 0:
+            sess.run(assign_target_op)
+          idx += 1
 
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
@@ -378,16 +383,20 @@ class QTest(test.TestCase):
         dtypes.int32, [None, 1], name='sequence_length')
     sequence_length = array_ops.squeeze(sequence_length_ph, -1)
 
+
     q_value_op, expected_q_value_op = q_ops.expected_q_value(
         array_ops.expand_dims(reward_ph, -1),
         action_ph,
         action_value_op,
         (target_next_action_value_op, mean_target_next_action_value_op),
+        max_sequence_length=QTest.hparams.max_sequence_length,
         weights=array_ops.expand_dims(
             1 - math_ops.cast(terminal_ph, reward_ph.dtype), -1),
         discount=QTest.hparams.discount)
 
-    u = expected_q_value_op - q_value_op
+    q_value_op, expected_q_value_op = q_ops.q_quantile(q_value_op, expected_q_value_op)
+
+    u = array_ops.stop_gradient(expected_q_value_op) - q_value_op
     loss_op = losses_impl.huber_loss(u, delta=QTest.hparams.huber_loss_delta)
 
     tau_op = (2. * math_ops.range(
@@ -399,23 +408,18 @@ class QTest(test.TestCase):
 
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
-            sequence_length, loss_op.dtype))
+            array_ops.expand_dims(sequence_length, -1), loss_op.dtype))
     optimizer = adam.AdamOptimizer(
         learning_rate=QTest.hparams.learning_rate)
-    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
-    train_op = control_flow_ops.cond(
-        gen_math_ops.equal(
-            gen_math_ops.mod(
-                ops.convert_to_tensor(
-                    QTest.hparams.assign_target_steps, dtype=dtypes.int64),
-                (global_step + 1)), 0),
-        lambda: control_flow_ops.group(*[train_op, assign_target_op]),
-        lambda: train_op)
+    train_op = optimizer.minimize(
+        loss_op,
+        var_list=policy_variables,
+        global_step=global_step)
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
       sess.run(assign_target_op)
-
+      idx = 0
       for iteration in range(QTest.hparams.num_iterations):
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
@@ -438,6 +442,9 @@ class QTest(test.TestCase):
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
               })
+          if (idx + 1) % QTest.hparams.assign_target_steps == 0:
+            sess.run(assign_target_op)
+          idx += 1
 
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,

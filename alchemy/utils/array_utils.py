@@ -71,8 +71,10 @@ def partition(zipped, num_steps, allow_overflow=True):
   """
   size = len(zipped)
   parts = []
+
   for i in range(0, size, num_steps):
     end = i + num_steps
+
     if end >= size:
       parts.append(zip(*zipped[i:]))
       break

@@ -11,6 +11,7 @@ from tensorflow.python.framework import tensor_shape
 from tensorflow.python.framework import errors_impl
 
 from alchemy.utils import assert_utils
+from alchemy.utils import array_utils
 from alchemy.utils import distribution_utils
 from alchemy.utils import type_utils
 from alchemy.contrib.rl import serialize
@@ -147,12 +148,17 @@ class FIFO(ReplayStream):
     self.memory = []
 
   def write(self, replay):
-    self.memory.append(self.serialize_replay(replay))
+    self.memory.append(replay)
 
   def read(self, limit=1):
     if not self.memory:
       raise errors_impl.OutOfRangeError()
-    return self.memory.pop(0)
+    memory = self.memory.pop(0)
+    if len(memory[0]) > limit:
+      partitions = memory.partition(limit, allow_overflow=True)
+      memory = partitions.pop(0)
+      self.memory = partitions + self.memory
+    return self.serialize_replay(memory)
 
 
 class Uniform(ReplayStream):
@@ -166,10 +172,18 @@ class Uniform(ReplayStream):
     self.memory = []
 
   def write(self, replay):
-    self.memory.append(self.serialize_replay(replay))
+    self.memory.append(replay)
 
   def read(self, limit=1):
     if not self.memory:
       raise errors_impl.OutOfRangeError()
     index = np.random.randint(len(self.memory))
-    return self.memory.pop(index)
+    memory = self.memory.pop(index)
+
+    if len(memory[0]) >= limit:
+      partitions = memory.partition(limit, allow_overflow=True)
+      index = np.random.randint(len(partitions))
+      memory = partitions.pop(index)
+      self.memory = partitions + self.memory
+
+    return self.serialize_replay(memory)

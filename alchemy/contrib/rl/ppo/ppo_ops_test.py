@@ -14,10 +14,13 @@ from tensorflow.python.layers import core
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import clip_ops
 from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import state_ops
+from tensorflow.python.ops import gradients_impl
 from tensorflow.python.ops import gen_math_ops
 from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops import state_ops
 from tensorflow.python.ops import random_ops
+from tensorflow.python.ops import logging_ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import variables
 from tensorflow.python.ops import variable_scope
@@ -28,6 +31,7 @@ from tensorflow.python.training import adam
 
 from alchemy.utils import distribution_utils
 from alchemy.utils import shortcuts
+from alchemy.utils import sequence_utils
 from alchemy.contrib.rl import dataset
 from alchemy.contrib.rl import experience
 from alchemy.contrib.rl import streams
@@ -57,15 +61,17 @@ class PPOTest(test.TestCase):
       discount=.99,
       epsilon=.2,
       lambda_td=1.,
-      exploration_decay_steps=256 // 16 * 25,
+      exploration_decay_steps=64,
       exploration_decay_rate=.99,
+      use_dropout_exploration=False,
       entropy_coeff=.01,
-      value_coeff=.01,
+      value_coeff=.5,
       value_units=16,
-      assign_policy_steps=64,
-      max_sequence_length=200,
-      num_episodes=256,
+      assign_policy_steps=16,
+      max_sequence_length=33,
+      num_episodes=32,
       batch_size=16,
+      replay_epochs=2,
       num_iterations=100)
 
   def test_ppo_ops_gae(self):
@@ -89,27 +95,49 @@ class PPOTest(test.TestCase):
         env.observation_space, name='state_space')
 
     # values
-    with variable_scope.variable_scope('logits'):
-      body_op = mlp(state_ph, PPOTest.hparams.hidden_layers)
+    with variable_scope.variable_scope('logits') as vs:
+      state_body_op = mlp(state_ph, PPOTest.hparams.hidden_layers)
+      if PPOTest.hparams.use_dropout_exploration:
+        state_body_op = core.Dropout(exploration_op)(
+            state_body_op, gen_math_ops.logical_not(deterministic_ph))
       action_distribution, action_value_op = gym_ops.distribution_from_gym_space(
-          env.action_space, logits=[body_op], name='action_space')
-      action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
-          action_distribution, exploration_op, deterministic_ph))
-      body_op = core.dense(
-          body_op, units=PPOTest.hparams.value_units,
+          env.action_space, logits=[state_body_op], name='action_space')
+      if PPOTest.hparams.use_dropout_exploration:
+        action_op = array_ops.squeeze(action_distribution.mode())
+      else:
+        action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
+            action_distribution, exploration_op, deterministic_ph))
+      value_body_op = core.dense(
+          state_body_op, units=PPOTest.hparams.value_units,
           activation=nn_ops.relu, use_bias=False)
-      value_op = array_ops.squeeze(core.dense(body_op, units=1, use_bias=False), -1)
-    policy_variables = variables.trainable_variables(scope='logits')
+      value_op = array_ops.squeeze(core.dense(value_body_op, units=1, use_bias=False), -1)
+      policy_variables = ops.get_collection(
+          ops.GraphKeys.GLOBAL_VARIABLES, scope=vs.name)
 
     # target
-    with variable_scope.variable_scope('old_logits'):
-      old_body_op = mlp(state_ph, PPOTest.hparams.hidden_layers)
+    with variable_scope.variable_scope('old_logits') as vs:
+      old_state_body_op = mlp(state_ph, PPOTest.hparams.hidden_layers)
+      if PPOTest.hparams.use_dropout_exploration:
+        old_state_body_op = core.Dropout(exploration_op)(
+            old_state_body_op, gen_math_ops.logical_not(deterministic_ph))
       old_action_distribution, old_action_value_op = gym_ops.distribution_from_gym_space(
-          env.action_space,
-          logits=[old_body_op],
-          name='action_space')
-    assign_policy_op = shortcuts.assign_scope('logits', 'old_logits')
+          env.action_space, logits=[old_state_body_op], name='action_space')
+      if PPOTest.hparams.use_dropout_exploration:
+        old_action_op = array_ops.squeeze(old_action_distribution.mode())
+      else:
+        old_action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
+            old_action_distribution, exploration_op, deterministic_ph))
+      old_value_body_op = core.dense(
+          old_state_body_op, units=PPOTest.hparams.value_units,
+          activation=nn_ops.relu, use_bias=False)
+      old_value_op = array_ops.squeeze(core.dense(old_value_body_op, units=1, use_bias=False), -1)
+      old_policy_variables = ops.get_collection(
+          ops.GraphKeys.GLOBAL_VARIABLES, scope=vs.name)
 
+
+    assign_policy_op = control_flow_ops.group(*list(state_ops.assign(t, f)
+                                                    for f, t in zip(
+                                                        policy_variables, old_policy_variables)))
 
     # Setup the dataset
     stream = streams.Uniform.from_distributions(
@@ -118,6 +146,7 @@ class PPOTest(test.TestCase):
     replay_dataset = dataset.ReplayDataset(
         stream, max_sequence_length=PPOTest.hparams.max_sequence_length)
     replay_dataset = replay_dataset.batch(PPOTest.hparams.batch_size)
+    replay_dataset = replay_dataset.repeat(PPOTest.hparams.replay_epochs)
     replay_op = replay_dataset.make_one_shot_iterator().get_next()
 
 
@@ -160,28 +189,22 @@ class PPOTest(test.TestCase):
     ratio = math_ops.exp(logits_prob - old_logits_prob)
     clipped_ratio = clip_ops.clip_by_value(
         ratio, 1. - PPOTest.hparams.epsilon, 1. + PPOTest.hparams.epsilon)
+
     actor_loss_op = -math_ops.minimum(ratio * advantage_op, clipped_ratio * advantage_op)
     critic_loss_op = math_ops.square(value_op - return_op) * PPOTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PPOTest.hparams.entropy_coeff
     loss_op = actor_loss_op + critic_loss_op + entropy_loss_op
-
-    # total loss
     loss_op = math_ops.reduce_mean(
-        math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
-            sequence_length, loss_op.dtype))
+        math_ops.reduce_sum(loss_op, -1) / math_ops.cast(
+                sequence_length, logits_prob.dtype))
+
+    grads_and_vars = gradients_impl.gradients(loss_op, policy_variables)
 
     optimizer = adam.AdamOptimizer(
         learning_rate=PPOTest.hparams.learning_rate)
-    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
-    train_op = control_flow_ops.cond(
-        gen_math_ops.equal(
-            gen_math_ops.mod(
-                ops.convert_to_tensor(
-                    PPOTest.hparams.assign_policy_steps, dtype=dtypes.int64),
-                (global_step + 1)), 0),
-        lambda: control_flow_ops.group(*[train_op, assign_policy_op]),
-        lambda: train_op)
-
+    train_op = optimizer.apply_gradients(
+        zip(grads_and_vars, policy_variables),
+        global_step=global_step)
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
@@ -194,12 +217,12 @@ class PPOTest(test.TestCase):
             num_episodes=PPOTest.hparams.num_episodes,
             stream=stream)
 
+        sess.run(assign_policy_op)
         while True:
           try:
             replay = sess.run(replay_op)
-          except (errors_impl.InvalidArgumentError, errors_impl.OutOfRangeError):
+          except (errors_impl.InvalidArgumentError, errors_impl.OutOfRangeError) as e:
             break
-
           _, loss = sess.run(
               (train_op, loss_op),
               feed_dict={
@@ -209,8 +232,8 @@ class PPOTest(test.TestCase):
                 reward_ph: replay.reward,
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
+                deterministic_ph: True,
               })
-          print(loss)
 
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,

@@ -80,7 +80,7 @@ def placeholder_from_gym_space(space, name='SpacePlaceholder'):
   raise TypeError('`space` not supported: {}'.format(type(space)))
 
 
-def distribution_from_gym_space(space, logits=None, name='SpaceDistribution'):
+def distribution_from_gym_space(space, logits=None, name='SpaceDistribution', trainable=True):
   """Determines a parameterized `tf.distribution.Distribution` from the `gym.Space`.
 
   Arguments:
@@ -102,7 +102,7 @@ def distribution_from_gym_space(space, logits=None, name='SpaceDistribution'):
   with ops.name_scope(name):
     if isinstance(space, discrete.Discrete):
       if logits and isinstance(logits[0], ops.Tensor):
-        logits = _dense_projection(logits[0], [space.n])
+        logits = _dense_projection(logits[0], [space.n], trainable=trainable)
       else:
         logits = _placeholder_factory_map[discrete.Discrete](space)
       distribution = categorical.Categorical(logits=math_ops.cast(logits, dtypes.float32))
@@ -112,7 +112,7 @@ def distribution_from_gym_space(space, logits=None, name='SpaceDistribution'):
 
     elif isinstance(space, multi_discrete.MultiDiscrete):
       if logits and isinstance(logits[0], ops.Tensor):
-        logits = _dense_projection(logits[0], space.shape)
+        logits = _dense_projection(logits[0], space.shape, trainable=trainable)
       else:
         logits = _placeholder_factory_map[multi_discrete.MultiDiscrete](space)
       distribution = categorical.Categorical(logits=math_ops.cast(logits, dtypes.float32))
@@ -122,7 +122,7 @@ def distribution_from_gym_space(space, logits=None, name='SpaceDistribution'):
 
     elif isinstance(space, multi_binary.MultiBinary):
       if logits and isinstance(logits[0], ops.Tensor):
-        logits = _dense_projection(logits[0], space.shape)
+        logits = _dense_projection(logits[0], space.shape, trainable=trainable)
       else:
         logits = _placeholder_factory_map[multi_binary.MultiBinary](space)
       distribution = bernoulli.Bernoulli(logits=logits)
@@ -132,7 +132,7 @@ def distribution_from_gym_space(space, logits=None, name='SpaceDistribution'):
 
     elif isinstance(space, box.Box):
       if logits and isinstance(logits[0], ops.Tensor):
-        logits = _dense_projection(logits[0], space.shape)
+        logits = _dense_projection(logits[0], space.shape, trainable=trainable)
       else:
         logits = _placeholder_factory_map[box.Box](space)
 
@@ -143,12 +143,12 @@ def distribution_from_gym_space(space, logits=None, name='SpaceDistribution'):
 
       log_eps = math.log(distribution_utils.epsilon)
 
-      alpha = core.dense(logits, flat_shape, use_bias=False)
+      alpha = core.dense(logits, flat_shape, use_bias=False, trainable=trainable)
       alpha = clip_ops.clip_by_value(alpha, log_eps, -log_eps)
       alpha = math_ops.log(math_ops.exp(alpha) + 1.0) + 1.0
       alpha = gen_array_ops.reshape(alpha, shape)
 
-      beta = core.dense(logits, flat_shape, use_bias=False)
+      beta = core.dense(logits, flat_shape, use_bias=False, trainable=trainable)
       beta = clip_ops.clip_by_value(beta, log_eps, -log_eps)
       beta = math_ops.log(math_ops.exp(beta) + 1.0) + 1.0
       beta = gen_array_ops.reshape(beta, shape)
@@ -179,7 +179,7 @@ def distribution_from_gym_space(space, logits=None, name='SpaceDistribution'):
   raise TypeError('`space` not supported: {}'.format(type(space)))
 
 
-def _dense_projection(inputs, shape):
+def _dense_projection(inputs, shape, trainable=True):
   flat_shape = array_utils.product(shape)
   target_shape = _EXTRA_DIMS + shape
 
@@ -198,7 +198,7 @@ def _dense_projection(inputs, shape):
     if len(input_shape) > 3:
       inputs = gen_array_ops.reshape(
           inputs, [input_shape_[0], input_shape_[1], -1])
-    inputs = core.dense(inputs, flat_shape, use_bias=False)
+    inputs = core.dense(inputs, flat_shape, use_bias=False, trainable=trainable)
     inputs = gen_array_ops.reshape(
         inputs, [input_shape_[0], input_shape_[1]] + shape)
   return inputs
