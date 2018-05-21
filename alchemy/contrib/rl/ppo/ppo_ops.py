@@ -19,7 +19,7 @@ def generalized_advantage_estimate(rewards,
                                    discount=.9,
                                    lambda_td=.95,
                                    time_major=False,
-                                   normalize_advantages=True):
+                                   normalize_advantages=False):
   """Computes the GAE algorithm.
 
   Arguments:

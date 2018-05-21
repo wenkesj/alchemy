@@ -58,7 +58,7 @@ class PPOTest(test.TestCase):
       learning_rate=1.25e-3,
       hidden_layers=[16, 16],
       initial_exploration=.5,
-      discount=.99,
+      discount=.8,
       epsilon=.2,
       lambda_td=1.,
       exploration_decay_steps=64,
@@ -184,27 +184,23 @@ class PPOTest(test.TestCase):
         lambda_td=PPOTest.hparams.lambda_td)
 
     # actor loss
-    logits_prob = action_distribution.log_prob(action_ph)
-    old_logits_prob = old_action_distribution.log_prob(action_ph)
+    logits_prob = -action_distribution.log_prob(action_ph)
+    old_logits_prob = -old_action_distribution.log_prob(action_ph)
     ratio = math_ops.exp(logits_prob - old_logits_prob)
     clipped_ratio = clip_ops.clip_by_value(
         ratio, 1. - PPOTest.hparams.epsilon, 1. + PPOTest.hparams.epsilon)
 
     actor_loss_op = -math_ops.minimum(ratio * advantage_op, clipped_ratio * advantage_op)
-    critic_loss_op = math_ops.square(value_op - return_op) * PPOTest.hparams.value_coeff
+    critic_loss_op = math_ops.square(return_op - value_op) * PPOTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PPOTest.hparams.entropy_coeff
-    loss_op = actor_loss_op + critic_loss_op + entropy_loss_op
-    loss_op = math_ops.reduce_mean(
+    loss_op = entropy_loss_op - actor_loss_op - critic_loss_op
+    loss_op = -math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, -1) / math_ops.cast(
                 sequence_length, logits_prob.dtype))
 
-    grads_and_vars = gradients_impl.gradients(loss_op, policy_variables)
-
     optimizer = adam.AdamOptimizer(
         learning_rate=PPOTest.hparams.learning_rate)
-    train_op = optimizer.apply_gradients(
-        zip(grads_and_vars, policy_variables),
-        global_step=global_step)
+    train_op = optimizer.minimize(loss_op, var_list=policy_variables)
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
@@ -213,7 +209,7 @@ class PPOTest(test.TestCase):
       for iteration in range(PPOTest.hparams.num_iterations):
         rewards = gym_test_utils.rollout_with_values_on_gym_env(
             sess, env, state_ph, deterministic_ph,
-            action_value_op, action_op, value_op,
+            old_action_value_op, old_action_op, old_value_op,
             num_episodes=PPOTest.hparams.num_episodes,
             stream=stream)
 

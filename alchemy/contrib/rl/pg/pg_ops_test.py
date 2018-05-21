@@ -102,8 +102,8 @@ class PGTest(test.TestCase):
     replay_dataset = replay_dataset.batch(PGTest.hparams.batch_size)
     replay_op = replay_dataset.make_one_shot_iterator().get_next()
 
-    action_value_ph = array_ops.placeholder(
-        stream.action_value_dtype, [None, None] + stream.action_value_shape, name='action')
+    action_ph = array_ops.placeholder(
+        stream.action_dtype, [None, None] + stream.action_shape, name='action')
     reward_ph = array_ops.placeholder(
         stream.reward_dtype, [None, None] + stream.reward_shape, name='reward')
     terminal_ph = array_ops.placeholder(
@@ -119,10 +119,8 @@ class PGTest(test.TestCase):
         max_sequence_length=PGTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=PGTest.hparams.discount)
-    loss_op = action_distribution.cross_entropy(
-        distribution_utils.distribution_like(action_value_ph, action_distribution),
-        name='cross_entropy')
-    loss_op *= advantage_op
+
+    loss_op = -action_distribution.log_prob(action_ph) * advantage_op
     loss_op += -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
@@ -150,7 +148,7 @@ class PGTest(test.TestCase):
               (train_op, loss_op),
               feed_dict={
                 state_ph: replay.state,
-                action_value_ph: replay.action_value,
+                action_ph: replay.action,
                 reward_ph: replay.reward,
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,

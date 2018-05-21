@@ -10,7 +10,7 @@ def advantage(rewards, sequence_length, max_sequence_length,
               weights=1.,
               discount=.95,
               time_major=False,
-              normalize_advantages=True):
+              normalize_advantages=False):
   """Compute the advantage based on the baseline discounted rewards.
 
   Arguments:
