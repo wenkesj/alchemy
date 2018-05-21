@@ -80,6 +80,10 @@ def placeholder_from_gym_space(space, name='SpacePlaceholder'):
   raise TypeError('`space` not supported: {}'.format(type(space)))
 
 
+# TODO(wenkesj): use currying here and accept logits as an argument to create
+#                arbitrary distributions. This will allow distributions to be parameterized
+#                way easier and seperates the logic so it's easier to read and comprehend
+#                what is going on.
 def distribution_from_gym_space(space, logits=None, name='SpaceDistribution', trainable=True):
   """Determines a parameterized `tf.distribution.Distribution` from the `gym.Space`.
 

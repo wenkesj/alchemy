@@ -17,8 +17,8 @@ from alchemy.contrib.rnn import stacked_rnn_impl
 def conv2d_encoder(inputs, filters, kernel_sizes, strides,
                    scope=None,
                    activation=None,
-                   reuse=False):
-  with variable_scope.variable_scope(scope or "encoder", reuse=reuse) as varscope:
+                   reuse=None):
+  with variable_scope.variable_scope(scope, default_name="encoder", reuse=reuse) as varscope:
     # Create a new scope in which the caching device is either
     # determined by the parent scope, or is set to place the cached
     if not context.executing_eagerly():
@@ -56,8 +56,8 @@ def conv2d_decoder(inputs, encoder, shapes, strides,
                    scope=None,
                    activation=None,
                    weight_sharing=False,
-                   reuse=False):
-  with variable_scope.variable_scope(scope or "decoder", reuse=reuse) as varscope:
+                   reuse=None):
+  with variable_scope.variable_scope(scope, default_name="decoder", reuse=reuse) as varscope:
     # Create a new scope in which the caching device is either
     # determined by the parent scope, or is set to place the cached
     if not context.executing_eagerly():
@@ -102,9 +102,9 @@ def conv2d_rnn_encoder(inputs,
                        latent_hidden_activation,
                        rnn_hidden_sizes,
                        rnn_cell_fn,
-                       scope,
-                       reuse=False):
-  with variable_scope.variable_scope(scope, reuse=reuse):
+                       scope=None,
+                       reuse=None):
+  with variable_scope.variable_scope(scope, default_name=scope, reuse=reuse):
     inputs_shape = array_ops.shape(inputs)
     batch_size = inputs_shape[0]
     sequence_length = inputs_shape[1]

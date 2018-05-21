@@ -33,8 +33,8 @@ def create_initial_state_placeholder(state_size, dtype=dtypes.float32):
 def stacked_rnn(inputs, hidden_sizes, cell_fn,
                 scope=None,
                 dtype=dtypes.float32,
-                reuse=False):
-  with variable_scope.variable_scope(scope or "stacked_rnn", reuse=reuse) as varscope:
+                reuse=None):
+  with variable_scope.variable_scope(scope, default_name="stacked_rnn", reuse=reuse) as varscope:
     # Create a new scope in which the caching device is either
     # determined by the parent scope, or is set to place the cached
     # Variable using the same placement as for the rest of the RNN.
