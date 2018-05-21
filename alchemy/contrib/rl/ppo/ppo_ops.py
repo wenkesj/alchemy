@@ -7,7 +7,6 @@ from tensorflow.python.ops import array_ops
 
 from alchemy.utils import shortcuts
 from alchemy.utils import sequence_utils
-from alchemy.utils import distribution_utils
 from alchemy.contrib.rl import core_ops
 
 
@@ -43,9 +42,7 @@ def generalized_advantage_estimate(rewards,
           sequence_length, maxlen=max_sequence_length),
       rewards.dtype)
   batch_size = array_ops.shape(values)[0]
-  next_values = array_ops.concat(
-      [values[:, 1:], array_ops.zeros([batch_size, 1])],
-      axis=-1)
+  next_values = sequence_utils.shift(values, axis=-1, rotations=-1)
   delta = (rewards + discount * next_values - values) * weights
 
   advantage_op = core_ops.discount_rewards(

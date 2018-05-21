@@ -29,15 +29,19 @@ class SequenceUtilsTest(test.TestCase):
       actual_x = sess.run(tf_x, feed_dict={x_ph: x})
       self.assertTrue(np.all(np.equal(actual_x, expected_x)))
 
-  def test_shift_right(self):
+  def test_shift(self):
     ops.reset_default_graph()
     x_ph = array_ops.placeholder(dtypes.int32, [1, None])
     with self.test_session() as sess:
       x = np.array([[3, 2, 1]])
-      tf_x = sequence_utils.shift_right(x_ph, axis=1, rotations=1)
-      expected_x = np.array([[0, 3, 2]])
-      actual_x = sess.run(tf_x, feed_dict={x_ph: x})
-      self.assertTrue(np.all(np.equal(actual_x, expected_x)))
+      tf_x_right = sequence_utils.shift(x_ph, axis=1, rotations=1)
+      tf_x_left = sequence_utils.shift(x_ph, axis=1, rotations=-1)
+      expected_x_right = np.array([[0, 3, 2]])
+      expected_x_left = np.array([[2, 1, 0]])
+      actual_x = sess.run(tf_x_right, feed_dict={x_ph: x})
+      self.assertTrue(np.all(np.equal(actual_x, expected_x_right)))
+      actual_x = sess.run(tf_x_left, feed_dict={x_ph: x})
+      self.assertTrue(np.all(np.equal(actual_x, expected_x_left)))
 
   def test_mask_sequence(self):
     ops.reset_default_graph()
