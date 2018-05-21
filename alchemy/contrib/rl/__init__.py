@@ -7,3 +7,4 @@ from alchemy.contrib.rl.core_ops import *
 from alchemy.contrib.rl.streams import *
 from . import pg as pg
 from . import q as q
+from . import ppo as ppo
