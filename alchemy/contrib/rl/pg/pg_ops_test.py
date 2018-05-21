@@ -369,11 +369,11 @@ class PGTest(test.TestCase):
     random_seed.set_random_seed(42)
 
     train_envs = {
-      'easy': bandits.BanditEasy(),
+      'hard': bandits.BanditHard(),
       'medium': bandits.BanditMedium(),
     }
     test_envs = {
-      'hard': bandits.BanditHard(),
+      'easy': bandits.BanditEasy(),
     }
 
     for env in train_envs.values():

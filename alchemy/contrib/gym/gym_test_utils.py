@@ -165,7 +165,6 @@ def rollout_meta_with_values_on_gym_env(sess,
   rewards = 0.
   for episode in range(num_episodes):
     internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
-
     reward = 0.
     action = initial_action
     experiences = []
@@ -220,8 +219,9 @@ def rollout_meta_on_gym_env(sess,
     raise ValueError('missing `stream` to `save_replay`.')
 
   rewards = 0.
+  internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
   for episode in range(num_episodes):
-    internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
+    # internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
     reward = 0.
     action = initial_action
     experiences = []
@@ -251,5 +251,7 @@ def rollout_meta_on_gym_env(sess,
         sequence_length=len(experiences))
     if save_replay:
       stream.write(replay)
-    rewards += sum(replay.reward)
+    reward_sum = sum(replay.reward)
+    print(reward_sum)
+    rewards += reward_sum
   return rewards
