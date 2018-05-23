@@ -28,7 +28,7 @@ def advantage(rewards, sequence_length, max_sequence_length,
   Returns:
     Tensor with the same shape as `rewards`.
   """
-  discounted_reward_op = core_ops.discount_rewards(
+  discounted_reward_op = core_ops.discount(
       rewards,
       max_sequence_length=max_sequence_length,
       weights=weights,
@@ -81,7 +81,7 @@ def generalized_advantage_estimate(rewards,
   next_values = sequence_utils.shift(values, axis=-1, rotations=-1)
   delta = (rewards + discount * next_values - values) * weights
 
-  advantage_op = core_ops.discount_rewards(
+  advantage_op = core_ops.discount(
       delta,
       max_sequence_length=max_sequence_length,
       weights=weights,

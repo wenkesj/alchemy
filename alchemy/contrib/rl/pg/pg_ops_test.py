@@ -32,6 +32,7 @@ from tensorflow.python.training import adam
 from alchemy.utils import distribution_utils
 from alchemy.utils import sequence_utils
 from alchemy.contrib.rnn import stacked_rnn_impl
+from alchemy.contrib.rnn import fast_weights_impl
 from alchemy.contrib.rl import dataset
 from alchemy.contrib.rl import experience
 from alchemy.contrib.rl import streams
@@ -49,18 +50,22 @@ def mlp(inputs, hidden_layers):
         hidden, units=hidden_size, use_bias=False, activation=nn_ops.relu)
   return hidden
 
+# def rnn(inputs, hidden_layers):
+#   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
+#       inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
+#   return outputs, states, initial_states, zero_state
+
 def rnn(inputs, hidden_layers):
   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
-      inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
+      inputs, hidden_layers, fast_weights_impl.FastWeightsRNNCell)
   return outputs, states, initial_states, zero_state
-
 
 
 class PGTest(test.TestCase):
 
   hparams = hparam.HParams(
       learning_rate=1.25e-3,
-      hidden_layers=[16, 16],
+      hidden_layers=[16],
       initial_exploration=.5,
       use_dropout_exploration=False,
       discount=.8,
@@ -82,7 +87,7 @@ class PGTest(test.TestCase):
       num_iterations=100)
 
   @test_util.skip_if(True)
-  def test_pg_ops_advantage(self):
+  def test_pg_ops_pg(self):
     """This tests the PG algorithm with baseline advantage estimation."""
     ops.reset_default_graph()
     np.random.seed(42)
@@ -187,7 +192,7 @@ class PGTest(test.TestCase):
         print('average_rewards = {}'.format(rewards / PGTest.hparams.num_episodes))
 
   @test_util.skip_if(True)
-  def test_pg_ops_generalized_advantage_estimate(self):
+  def test_pg_ops_ppo(self):
     """This tests the PPO algorithm with GAE.
 
     Reference:
@@ -506,6 +511,7 @@ class PGTest(test.TestCase):
     }
     test_envs = {
       'easy': bandits.BanditEasy(),
+      'medium': bandits.BanditMedium(),
     }
 
     for env in train_envs.values():

@@ -65,7 +65,7 @@ class QTest(test.TestCase):
       huber_loss_delta=1.,
       num_quantiles=51)
 
-  @test_util.skip_if(True)
+  # @test_util.skip_if(True)
   def test_q_ops_dqn(self):
     ops.reset_default_graph()
     np.random.seed(42)
@@ -176,7 +176,7 @@ class QTest(test.TestCase):
             deterministic=True, save_replay=False)
         print('average_rewards = {}'.format(rewards / QTest.hparams.num_episodes))
 
-  # @test_util.skip_if(True)
+  @test_util.skip_if(True)
   def test_q_ops_double_dqn(self):
     env = gym.make('CartPole-v0')
     ops.reset_default_graph()

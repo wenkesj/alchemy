@@ -81,6 +81,8 @@ def expected_q_value(reward, action, action_value, next_action_value, max_sequen
   return (q_value, expected_q_value)
 
 
+# WARNING: This doesn't work (I think)
+# TODO(wenkesj): figure out what is wrong with this.
 def q_quantile(q_dist, expected_q_dist):
   shape = array_ops.shape(q_dist)
   batch_size, sequence_size = shape[0], shape[1]

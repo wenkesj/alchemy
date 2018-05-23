@@ -11,7 +11,7 @@ from tensorflow.python.ops import variable_scope
 from alchemy.utils import shortcuts
 
 
-def discount_rewards(rewards, max_sequence_length, weights=1., discount=.95, time_major=False):
+def discount(rewards, max_sequence_length, weights=1., discount=.95, time_major=False):
   """Compute and return the discounted/filtered reward.
 
   Arguments:
