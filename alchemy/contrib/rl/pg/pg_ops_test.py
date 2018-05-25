@@ -50,15 +50,15 @@ def mlp(inputs, hidden_layers):
         hidden, units=hidden_size, use_bias=False, activation=nn_ops.relu)
   return hidden
 
-# def rnn(inputs, hidden_layers):
-#   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
-#       inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
-#   return outputs, states, initial_states, zero_state
-
 def rnn(inputs, hidden_layers):
   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
-      inputs, hidden_layers, fast_weights_impl.FastWeightsRNNCell)
+      inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
   return outputs, states, initial_states, zero_state
+
+# def rnn(inputs, hidden_layers):
+#   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
+#       inputs, hidden_layers, fast_weights_impl.FastWeightsRNNCell)
+#   return outputs, states, initial_states, zero_state
 
 
 class PGTest(test.TestCase):
@@ -80,7 +80,7 @@ class PGTest(test.TestCase):
       max_sequence_length=33,
       max_meta_sequence_length=99,
       num_episodes=32,
-      num_meta_train_episodes=32,
+      num_meta_train_episodes=16,
       num_meta_test_episodes=10,
       batch_size=16,
       replay_epochs=2,
@@ -154,6 +154,7 @@ class PGTest(test.TestCase):
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
             sequence_length, loss_op.dtype))
+
     optimizer = adam.AdamOptimizer(
         learning_rate=PGTest.hparams.learning_rate)
     train_op = optimizer.minimize(loss_op)
