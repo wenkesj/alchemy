@@ -50,15 +50,15 @@ def mlp(inputs, hidden_layers):
         hidden, units=hidden_size, use_bias=False, activation=nn_ops.relu)
   return hidden
 
-def rnn(inputs, hidden_layers):
-  outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
-      inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
-  return outputs, states, initial_states, zero_state
-
 # def rnn(inputs, hidden_layers):
 #   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
-#       inputs, hidden_layers, fast_weights_impl.FastWeightsRNNCell)
+#       inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
 #   return outputs, states, initial_states, zero_state
+
+def rnn(inputs, hidden_layers):
+  outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
+      inputs, hidden_layers, fast_weights_impl.FastWeightsRNNCell)
+  return outputs, states, initial_states, zero_state
 
 
 class PGTest(test.TestCase):
@@ -68,7 +68,7 @@ class PGTest(test.TestCase):
       hidden_layers=[16, 16],
       initial_exploration=.5,
       use_dropout_exploration=False,
-      discount=.9,
+      discount=.99,
       lambda_td=1.,
       epsilon=.2,
       exploration_decay_steps=64,
@@ -76,17 +76,17 @@ class PGTest(test.TestCase):
       entropy_coeff=.01,
       value_coeff=.5,
       value_units=16,
-      assign_policy_steps=16,
+      assign_policy_steps=2,
       max_sequence_length=33,
       max_meta_sequence_length=99,
       num_episodes=32,
       num_meta_train_episodes=16,
       num_meta_test_episodes=10,
       batch_size=16,
-      replay_epochs=2,
+      replay_epochs=1,
       num_iterations=100)
 
-  @test_util.skip_if(True)
+  @test_util.skip_if(True) # √
   def test_pg_ops_pg(self):
     """This tests the PG algorithm with baseline advantage estimation."""
     ops.reset_default_graph()
@@ -196,7 +196,7 @@ class PGTest(test.TestCase):
         print('mean={}, max={}, min={}'.format(
             sums.mean(), sums.max(), sums.min()))
 
-  @test_util.skip_if(True)
+  @test_util.skip_if(True) # √
   def test_pg_ops_ppo(self):
     """This tests the PPO algorithm with GAE.
 
@@ -370,7 +370,7 @@ class PGTest(test.TestCase):
         print('mean={}, max={}, min={}'.format(
             sums.mean(), sums.max(), sums.min()))
 
-  @test_util.skip_if(True)
+  @test_util.skip_if(True) # √
   def test_pg_ops_a2c(self):
     ops.reset_default_graph()
     np.random.seed(42)
