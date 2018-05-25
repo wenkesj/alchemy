@@ -65,10 +65,10 @@ class PGTest(test.TestCase):
 
   hparams = hparam.HParams(
       learning_rate=1.25e-3,
-      hidden_layers=[16],
+      hidden_layers=[16, 16],
       initial_exploration=.5,
       use_dropout_exploration=False,
-      discount=.8,
+      discount=.9,
       lambda_td=1.,
       epsilon=.2,
       exploration_decay_steps=64,
@@ -158,11 +158,11 @@ class PGTest(test.TestCase):
         learning_rate=PGTest.hparams.learning_rate)
     train_op = optimizer.minimize(loss_op)
 
+
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
       for iteration in range(PGTest.hparams.num_iterations):
-
-        rewards = gym_test_utils.rollout_on_gym_env(
+        _ = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
             action_value_op, action_op,
             num_episodes=PGTest.hparams.num_episodes,
@@ -184,12 +184,16 @@ class PGTest(test.TestCase):
                 deterministic_ph: True,
               })
 
-        rewards = gym_test_utils.rollout_on_gym_env(
+        rollouts = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
             action_value_op, action_op,
             num_episodes=PGTest.hparams.num_episodes,
             deterministic=True, save_replay=False)
-        print('average_rewards = {}'.format(rewards / PGTest.hparams.num_episodes))
+        sums = rollouts.reduce_stats(
+            experience.Keys.REWARD,
+            stats=[experience.Stats.SUM])
+        print('mean={}, max={}, min={}'.format(
+            sums.mean(), sums.max(), sums.min()))
 
   @test_util.skip_if(True)
   def test_pg_ops_ppo(self):
@@ -316,7 +320,7 @@ class PGTest(test.TestCase):
     actor_loss_op = -math_ops.minimum(ratio * advantage_op, clipped_ratio * advantage_op)
     critic_loss_op = math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
-    loss_op = entropy_loss_op - actor_loss_op - critic_loss_op
+    loss_op = -entropy_loss_op + actor_loss_op - critic_loss_op
     loss_op = -math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, -1) / math_ops.cast(
                 sequence_length, logits_prob.dtype))
@@ -330,7 +334,7 @@ class PGTest(test.TestCase):
       sess.run(assign_policy_op)
 
       for iteration in range(PGTest.hparams.num_iterations):
-        rewards = gym_test_utils.rollout_with_values_on_gym_env(
+        _ = gym_test_utils.rollout_with_values_on_gym_env(
             sess, env, state_ph, deterministic_ph,
             old_action_value_op, old_action_op, old_value_op,
             num_episodes=PGTest.hparams.num_episodes,
@@ -354,12 +358,16 @@ class PGTest(test.TestCase):
                 deterministic_ph: True,
               })
 
-        rewards = gym_test_utils.rollout_on_gym_env(
+        rollouts = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
             action_value_op, action_op,
             num_episodes=PGTest.hparams.num_episodes,
             deterministic=True, save_replay=False)
-        print('average_rewards = {}'.format(rewards / PGTest.hparams.num_episodes))
+        sums = rollouts.reduce_stats(
+              experience.Keys.REWARD,
+              stats=[experience.Stats.SUM])
+        print('mean={}, max={}, min={}'.format(
+            sums.mean(), sums.max(), sums.min()))
 
   @test_util.skip_if(True)
   def test_pg_ops_a2c(self):
@@ -436,7 +444,6 @@ class PGTest(test.TestCase):
         name='sequence_length')
     sequence_length = array_ops.squeeze(sequence_length_ph, -1)
 
-
     # Setup the loss/optimization procedure
     advantage_op, return_op = pg_ops.generalized_advantage_estimate(
         reward_ph,
@@ -448,12 +455,12 @@ class PGTest(test.TestCase):
         lambda_td=PGTest.hparams.lambda_td)
 
     actor_loss_op = -action_distribution.log_prob(action_ph) * advantage_op
-    critic_loss_op = math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
+    critic_loss_op = .5 * math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
-    loss_op = entropy_loss_op + actor_loss_op - critic_loss_op
-    loss_op = -math_ops.reduce_mean(
+    loss_op = entropy_loss_op + actor_loss_op + critic_loss_op
+    loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, -1) / math_ops.cast(
-                sequence_length, actor_loss_op.dtype))
+            sequence_length, actor_loss_op.dtype))
 
     optimizer = adam.AdamOptimizer(
         learning_rate=PGTest.hparams.learning_rate)
@@ -463,7 +470,7 @@ class PGTest(test.TestCase):
       sess.run(variables.global_variables_initializer())
 
       for iteration in range(PGTest.hparams.num_iterations):
-        rewards = gym_test_utils.rollout_with_values_on_gym_env(
+        _ = gym_test_utils.rollout_with_values_on_gym_env(
             sess, env, state_ph, deterministic_ph,
             action_value_op, action_op, value_op,
             num_episodes=PGTest.hparams.num_episodes,
@@ -486,12 +493,16 @@ class PGTest(test.TestCase):
                 deterministic_ph: True,
               })
 
-        rewards = gym_test_utils.rollout_on_gym_env(
+        rollouts = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
             action_value_op, action_op,
             num_episodes=PGTest.hparams.num_episodes,
             deterministic=True, save_replay=False)
-        print('average_rewards = {}'.format(rewards / PGTest.hparams.num_episodes))
+        sums = rollouts.reduce_stats(
+              experience.Keys.REWARD,
+              stats=[experience.Stats.SUM])
+        print('mean={}, max={}, min={}'.format(
+            sums.mean(), sums.max(), sums.min()))
 
   # @test_util.skip_if(True)
   def test_pg_ops_meta_rl(self):
@@ -511,7 +522,6 @@ class PGTest(test.TestCase):
     }
     test_envs = {
       'easy': bandits.BanditEasy(),
-      'medium': bandits.BanditMedium(),
     }
 
     for env in train_envs.values():
@@ -532,7 +542,6 @@ class PGTest(test.TestCase):
     state_distribution, state_ph = gym_ops.distribution_from_gym_space(
         train_envs['medium'].observation_space, name='state_space')
 
-    # TODO(wenkesj): make this not necessary, for now it's okay...
     dummy_action_distribution, _ = gym_ops.distribution_from_gym_space(
         train_envs['medium'].action_space, name='dummy_action_space')
 
@@ -619,12 +628,12 @@ class PGTest(test.TestCase):
         lambda_td=PGTest.hparams.lambda_td)
 
     actor_loss_op = -action_distribution.log_prob(action_ph) * advantage_op
-    critic_loss_op = math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
+    critic_loss_op = .5 * math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
-    loss_op = entropy_loss_op + actor_loss_op - critic_loss_op
-    loss_op = -math_ops.reduce_mean(
+    loss_op = entropy_loss_op + actor_loss_op + critic_loss_op
+    loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, -1) / math_ops.cast(
-                sequence_length, actor_loss_op.dtype))
+            sequence_length, actor_loss_op.dtype))
 
     optimizer = adam.AdamOptimizer(
         learning_rate=PGTest.hparams.learning_rate)
@@ -635,7 +644,7 @@ class PGTest(test.TestCase):
 
       for iteration in range(PGTest.hparams.num_iterations):
         for train_name, train_env in train_envs.items():
-          rewards = gym_test_utils.rollout_meta_with_values_on_gym_env(
+          _ = gym_test_utils.rollout_meta_with_values_on_gym_env(
               sess, train_env, state_ph, internal_state_ph,
               action_ph, reward_ph, deterministic_ph,
               action_value_op, action_op,
@@ -663,17 +672,21 @@ class PGTest(test.TestCase):
                 **{k: v for k, v in zip(internal_state_ph, internal_state)},
                 deterministic_ph: True,
               })
+          print(loss)
 
         for test_env_name, test_env in test_envs.items():
-          rewards = gym_test_utils.rollout_meta_on_gym_env(
+          rollouts = gym_test_utils.rollout_meta_on_gym_env(
               sess, test_env, state_ph, internal_state_ph,
               action_ph, reward_ph, deterministic_ph,
               action_value_op, action_op, internal_state_op,
               zero_state_fn, initial_action,
               num_episodes=PGTest.hparams.num_meta_test_episodes,
               deterministic=True, save_replay=False)
-          print('{}: average_rewards = {}'.format(
-              test_env_name, rewards / PGTest.hparams.num_meta_test_episodes))
+          sums = rollouts.reduce_stats(
+                experience.Keys.REWARD,
+                stats=[experience.Stats.SUM])
+          print('{}: mean={}, max={}, min={}'.format(
+              test_env_name, sums.mean(), sums.max(), sums.min()))
 
 
 if __name__ == '__main__':

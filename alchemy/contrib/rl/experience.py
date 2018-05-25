@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import enum
 import collections
+import numpy as np
 
 from alchemy.utils import array_utils
+from alchemy.utils import assert_utils
 
 
 class Experience(collections.namedtuple('Experience', ['state', 'next_state',
@@ -84,3 +87,28 @@ class ReplayWithValues(collections.namedtuple('Replay', ['state', 'next_state',
               terminal=terminal,
               sequence_length=len(state)))
     return replay_partitions
+
+
+class Keys(enum.Enum):
+  REWARD = 'reward'
+
+
+class Stats(enum.Enum):
+  SUM = np.sum
+
+
+class Rollout(object):
+  def reduce_stats(self, key, stats):
+    results = []
+    for container in getattr(self, key.value):
+      values = np.asarray(list(container))
+      results.append([stat_key(values) for stat_key in stats])
+    return np.asarray(results)
+
+
+class Rollouts(Rollout, Replay):
+  pass
+
+
+class RolloutsWithValues(Rollout, ReplayWithValues):
+  pass

@@ -4,8 +4,6 @@ from __future__ import absolute_import
 from alchemy.contrib.rl import experience
 
 
-# TODO(wenkesj): cutdown on repeated code, make this more modular.
-
 def rollout_on_gym_env(sess,
                        env,
                        state_ph,
@@ -19,7 +17,7 @@ def rollout_on_gym_env(sess,
   if stream is None and save_replay:
     raise ValueError('missing `stream` to `save_replay`.')
 
-  rewards = 0.
+  replays = []
   for episode in range(num_episodes):
     experiences = []
     next_state = env.reset()
@@ -43,8 +41,8 @@ def rollout_on_gym_env(sess,
         sequence_length=len(experiences))
     if save_replay:
       stream.write(replay)
-    rewards += sum(replay.reward)
-  return rewards
+    replays.append(replay)
+  return experience.Rollouts(*zip(*replays))
 
 
 def rollout_with_values_on_gym_env(sess,
@@ -61,7 +59,7 @@ def rollout_with_values_on_gym_env(sess,
   if stream is None and save_replay:
     raise ValueError('missing `stream` to `save_replay`.')
 
-  rewards = 0.
+  replays = []
   for episode in range(num_episodes):
     experiences = []
     next_state = env.reset()
@@ -88,8 +86,8 @@ def rollout_with_values_on_gym_env(sess,
         sequence_length=len(experiences))
     if save_replay:
       stream.write(replay)
-    rewards += sum(replay.reward)
-  return rewards
+    replays.append(replay)
+  return experience.RolloutsWithValues(*zip(*replays))
 
 
 def rollout_stateful_with_values_on_gym_env(sess,
@@ -109,7 +107,7 @@ def rollout_stateful_with_values_on_gym_env(sess,
   if stream is None and save_replay:
     raise ValueError('missing `stream` to `save_replay`.')
 
-  rewards = 0.
+  replays = []
   for episode in range(num_episodes):
     internal_state = sess.run(zero_state(1, dtype=state_ph.dtype))
     experiences = []
@@ -138,8 +136,8 @@ def rollout_stateful_with_values_on_gym_env(sess,
         sequence_length=len(experiences))
     if save_replay:
       stream.write(replay)
-    rewards += sum(replay.reward)
-  return rewards
+    replays.append(replay)
+  return experience.RolloutsWithValues(*zip(*replays))
 
 
 def rollout_meta_with_values_on_gym_env(sess,
@@ -162,7 +160,7 @@ def rollout_meta_with_values_on_gym_env(sess,
   if stream is None and save_replay:
     raise ValueError('missing `stream` to `save_replay`.')
 
-  rewards = 0.
+  replays = []
   for episode in range(num_episodes):
     internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
     reward = 0.
@@ -195,8 +193,8 @@ def rollout_meta_with_values_on_gym_env(sess,
         sequence_length=len(experiences))
     if save_replay:
       stream.write(replay)
-    rewards += sum(replay.reward)
-  return rewards
+    replays.append(replay)
+  return experience.RolloutsWithValues(*zip(*replays))
 
 
 def rollout_meta_on_gym_env(sess,
@@ -218,7 +216,7 @@ def rollout_meta_on_gym_env(sess,
   if stream is None and save_replay:
     raise ValueError('missing `stream` to `save_replay`.')
 
-  rewards = 0.
+  replays = []
   internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
   for episode in range(num_episodes):
     # internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
@@ -251,7 +249,5 @@ def rollout_meta_on_gym_env(sess,
         sequence_length=len(experiences))
     if save_replay:
       stream.write(replay)
-    reward_sum = sum(replay.reward)
-    print(reward_sum)
-    rewards += reward_sum
-  return rewards
+    replays.append(replay)
+  return experience.Rollouts(*zip(*replays))

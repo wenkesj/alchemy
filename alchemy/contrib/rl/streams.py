@@ -137,6 +137,30 @@ class ReplayStream(object):
     raise NotImplementedError('Must implement `write` method.')
 
 
+class Stack(ReplayStream):
+
+  """
+  A Stack replay memory.
+  """
+
+  def __init__(self, *args, **kwargs):
+    super(Stack, self).__init__(*args, **kwargs)
+    self.memory = []
+
+  def write(self, replay):
+    self.memory.append(replay)
+
+  def read(self, limit=1):
+    if not self.memory:
+      raise errors_impl.OutOfRangeError()
+    memory = self.memory.pop()
+    if len(memory[0]) > limit:
+      partitions = memory.partition(limit, allow_overflow=True)
+      memory = partitions.pop()
+      self.memory.extend(partitions)
+    return self.serialize_replay(memory)
+
+
 class FIFO(ReplayStream):
 
   """

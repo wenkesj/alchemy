@@ -8,9 +8,24 @@ from tensorflow.python.framework import ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import gen_array_ops
 
 from alchemy.utils import shortcuts
 
+
+def gather_along_second_axis(data, indices):
+  ndims = len(data.get_shape().as_list())
+  shape = array_ops.shape(data)
+  re_shape = [shape[0] * shape[1]]
+  indices = array_ops.reshape(indices, re_shape)
+  for idx in range(2, ndims):
+    re_shape.append(shape[idx])
+  data = array_ops.reshape(data, re_shape)
+  batch_offset = math_ops.range(0, array_ops.shape(data)[0])
+  flat_indices = array_ops.stack([batch_offset, indices], axis=1)
+  two_d = gen_array_ops.gather_nd(data, flat_indices)
+  three_d = gen_array_ops.reshape(two_d, [shape[0], shape[1]])
+  return three_d
 
 def expand_dims(x, axes):
   for axis in axes:
@@ -43,7 +58,6 @@ def pad_or_truncate(x, maxsize, axis=-1, pad_value=0):
   truncate = lambda: x[index_padding]
 
   return control_flow_ops.cond(size > maxsize, truncate, pad)
-
 
 def shift(x, axis=1, rotations=1, pad_value=None):
   """Shift the dimension according to `axis` of `x` right by `rotations`."""

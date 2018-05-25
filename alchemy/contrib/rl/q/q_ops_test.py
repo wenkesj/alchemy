@@ -55,15 +55,16 @@ class QTest(test.TestCase):
       hidden_layers=[16, 16],
       initial_exploration=.5,
       discount=.99,
-      exploration_decay_steps=256 // 16 * 25,
+      exploration_decay_steps=20,
       exploration_decay_rate=.99,
-      max_sequence_length=4,
-      num_episodes=256,
+      max_sequence_length=33,
+      num_episodes=16,
       batch_size=16,
       num_iterations=100,
       assign_target_steps=10 * 16,
       huber_loss_delta=1.,
-      num_quantiles=51)
+      num_quantiles=51,
+      n_step=False)
 
   # @test_util.skip_if(True)
   def test_q_ops_dqn(self):
@@ -83,7 +84,6 @@ class QTest(test.TestCase):
         QTest.hparams.exploration_decay_steps,
         QTest.hparams.exploration_decay_rate)
 
-
     state_distribution, state_ph = gym_ops.distribution_from_gym_space(
         env.observation_space, name='state_space')
     with variable_scope.variable_scope('logits'):
@@ -92,17 +92,12 @@ class QTest(test.TestCase):
           env.action_space, logits=[action_value_op], name='action_space')
       action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
           action_distribution, exploration_op, deterministic_ph))
-    policy_variables = variables.trainable_variables(scope='logits')
-
 
     next_state_ph = shortcuts.placeholder_like(state_ph, name='next_state_space')
     with variable_scope.variable_scope('logits', reuse=True):
       next_action_value_op = mlp(next_state_ph, QTest.hparams.hidden_layers)
       next_action_distribution, next_action_value_op = gym_ops.distribution_from_gym_space(
           env.action_space, logits=[next_action_value_op], name='action_space')
-      next_action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
-          next_action_distribution, exploration_op, deterministic_ph))
-
 
     # Setup the dataset
     stream = streams.Uniform.from_distributions(
@@ -127,13 +122,13 @@ class QTest(test.TestCase):
         action_ph,
         action_value_op,
         next_action_value_op,
+        sequence_length,
         max_sequence_length=QTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
-        discount=QTest.hparams.discount)
+        discount=QTest.hparams.discount,
+        n_step=QTest.hparams.n_step)
 
-    # mean_squared_error
-    loss_op = math_ops.square(q_value_op - expected_q_value_op)
-
+    loss_op = .5 * math_ops.square(q_value_op - expected_q_value_op)
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
             array_ops.expand_dims(sequence_length, -1), loss_op.dtype))
@@ -141,8 +136,8 @@ class QTest(test.TestCase):
         learning_rate=QTest.hparams.learning_rate)
     train_op = optimizer.minimize(
         loss_op,
-        var_list=policy_variables,
         global_step=global_step)
+
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
@@ -168,6 +163,7 @@ class QTest(test.TestCase):
                 terminal_ph: replay.terminal,
                 sequence_length_ph: replay.sequence_length,
               })
+          print(loss)
 
         rewards = gym_test_utils.rollout_on_gym_env(
             sess, env, state_ph, deterministic_ph,
@@ -211,15 +207,11 @@ class QTest(test.TestCase):
       next_action_value_op = mlp(next_state_ph, QTest.hparams.hidden_layers)
       next_action_distribution, next_action_value_op = gym_ops.distribution_from_gym_space(
           env.action_space, logits=[next_action_value_op], name='action_space')
-      next_action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
-          next_action_distribution, exploration_op, deterministic_ph))
 
     with variable_scope.variable_scope('target_logits'):
       target_next_action_value_op = mlp(next_state_ph, QTest.hparams.hidden_layers)
       target_next_action_distribution, target_next_action_value_op = gym_ops.distribution_from_gym_space(
           env.action_space, logits=[target_next_action_value_op], name='action_space')
-      target_next_action_op = array_ops.squeeze(sampling_ops.epsilon_greedy(
-          target_next_action_distribution, exploration_op, deterministic_ph))
     assign_target_op = shortcuts.assign_scope('logits', 'target_logits')
 
 
@@ -246,12 +238,13 @@ class QTest(test.TestCase):
         action_ph,
         action_value_op,
         (next_action_value_op, target_next_action_value_op),
+        sequence_length,
         max_sequence_length=QTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=QTest.hparams.discount)
 
     # mean_squared_error
-    loss_op = math_ops.square(q_value_op - expected_q_value_op)
+    loss_op = math_ops.square(q_value_op - array_ops.stop_gradient(expected_q_value_op))
     loss_op = math_ops.reduce_mean(
         math_ops.reduce_sum(loss_op, axis=-1) / math_ops.cast(
             array_ops.expand_dims(sequence_length, -1), loss_op.dtype))
@@ -389,6 +382,7 @@ class QTest(test.TestCase):
         action_ph,
         action_value_op,
         (target_next_action_value_op, mean_target_next_action_value_op),
+        sequence_length,
         max_sequence_length=QTest.hparams.max_sequence_length,
         weights=array_ops.expand_dims(
             1 - math_ops.cast(terminal_ph, reward_ph.dtype), -1),
@@ -396,7 +390,7 @@ class QTest(test.TestCase):
 
     q_value_op, expected_q_value_op = q_ops.q_quantile(q_value_op, expected_q_value_op)
 
-    u = array_ops.stop_gradient(expected_q_value_op) - q_value_op
+    u = q_value_op - array_ops.stop_gradient(expected_q_value_op)
     loss_op = losses_impl.huber_loss(u, delta=QTest.hparams.huber_loss_delta)
 
     tau_op = (2. * math_ops.range(
