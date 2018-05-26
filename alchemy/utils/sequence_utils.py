@@ -12,7 +12,7 @@ from tensorflow.python.ops import gen_array_ops
 
 from alchemy.utils import shortcuts
 
-
+# TODO(wenkesj): clean this up, this isn't good -_-
 def gather_along_second_axis(data, indices):
   ndims = len(data.get_shape().as_list())
   shape = array_ops.shape(data)
@@ -24,7 +24,11 @@ def gather_along_second_axis(data, indices):
   batch_offset = math_ops.range(0, array_ops.shape(data)[0])
   flat_indices = array_ops.stack([batch_offset, indices], axis=1)
   two_d = gen_array_ops.gather_nd(data, flat_indices)
-  three_d = gen_array_ops.reshape(two_d, [shape[0], shape[1]])
+
+  if ndims == 4:
+    three_d = gen_array_ops.reshape(two_d, [shape[0], shape[1], -1])
+  elif ndims == 3:
+    three_d = gen_array_ops.reshape(two_d, [shape[0], shape[1]])
   return three_d
 
 def expand_dims(x, axes):

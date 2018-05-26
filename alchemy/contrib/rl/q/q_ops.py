@@ -42,10 +42,13 @@ def expected_q_value(reward, action, action_value, next_action_value,
   weights = ops.convert_to_tensor(weights, dtype=reward.dtype)
   discount = ops.convert_to_tensor(discount, dtype=reward.dtype)
   n_step = ops.convert_to_tensor(n_step, dtype=dtypes.bool)
+  ndim = len(action_value.shape)
 
-  # TODO(wenkesj): handle > 3D inputs
   q_value = sequence_utils.gather_along_second_axis(action_value, action)
-  q_value.set_shape([None, max_sequence_length])
+  if ndim == 4:
+    q_value.set_shape([None, max_sequence_length, action_value.shape[-1]])
+  elif ndim == 3:
+    q_value.set_shape([None, max_sequence_length])
 
   if isinstance(next_action_value, tuple) or isinstance(next_action_value, list):
     assert_utils.assert_true(
@@ -59,37 +62,41 @@ def expected_q_value(reward, action, action_value, next_action_value,
     next_q_value = sequence_utils.gather_along_second_axis(
         next_action_value,
         math_ops.argmax(next_action_value, -1, output_type=dtypes.int32))
-  next_q_value.set_shape([None, max_sequence_length])
 
-  expected_q_value = control_flow_ops.cond(
-      n_step,
-      lambda: core_ops.discount(
-          reward,
-          max_sequence_length=max_sequence_length,
-          initial_value=next_q_value,
-          weights=weights,
-          discount=discount),
-      lambda: reward + discount * next_q_value * weights)
-  return (q_value, expected_q_value)
+  if ndim == 4:
+    next_q_value.set_shape([None, max_sequence_length, action_value.shape[-1]])
+  elif ndim == 3:
+    next_q_value.set_shape([None, max_sequence_length])
 
+  def true_fn():
+    reward_t = core_ops.discount(
+        reward,
+        max_sequence_length=max_sequence_length,
+        initial_value=next_q_value,
+        weights=weights,
+        discount=discount)
+    discount_t = array_ops.tile(
+        array_ops.expand_dims(discount, -1),
+        [array_ops.shape(sequence_length)[0]]) ** math_ops.cast(
+            sequence_length, dtypes.float32)
+    discount_t = array_ops.expand_dims(discount_t, -1)
+    if ndim == 4:
+      reward_t = array_ops.expand_dims(reward_t, -1)
+      discount_t = array_ops.expand_dims(discount_t, -1)
+    return reward_t + discount_t * next_q_value
 
-# WARNING: This doesn't work (I think)
-# TODO(wenkesj): figure out what is wrong with this.
-def q_quantile(q_dist, expected_q_dist):
-  shape = array_ops.shape(q_dist)
-  batch_size, sequence_size = shape[0], shape[1]
-  num_quantiles = q_dist.get_shape()[-1].value
+  def false_fn():
+    reward_t = reward
+    if ndim == 4:
+      reward_t = array_ops.expand_dims(reward_t, -1)
+    return reward_t + discount * next_q_value
 
-  big_expected_q_dist = array_ops.transpose(
-      gen_array_ops.reshape(
-          array_ops.tile(
-              expected_q_dist, [1, 1, num_quantiles]),
-          [batch_size, sequence_size, num_quantiles, num_quantiles]),
-      perm=[0, 1, 3, 2])
+  expected_q_value = control_flow_ops.cond(n_step, true_fn, false_fn)
 
-  big_q_dist = gen_array_ops.reshape(
-      array_ops.tile(
-          q_dist,
-          [1, 1, num_quantiles]),
-      [batch_size, sequence_size, num_quantiles, num_quantiles])
-  return (big_q_dist, big_expected_q_dist)
+  if ndim == 4:
+    weights = array_ops.expand_dims(weights, -1)
+    expected_q_value.set_shape([None, max_sequence_length, action_value.shape[-1]])
+  elif ndim == 3:
+    expected_q_value.set_shape([None, max_sequence_length])
+
+  return (q_value * weights, expected_q_value * weights)

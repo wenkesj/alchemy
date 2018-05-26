@@ -31,6 +31,7 @@ from tensorflow.python.training import adam
 
 from alchemy.utils import distribution_utils
 from alchemy.utils import sequence_utils
+from alchemy.utils import shortcuts
 from alchemy.contrib.rnn import stacked_rnn_impl
 from alchemy.contrib.rnn import fast_weights_impl
 from alchemy.contrib.rl import dataset
@@ -50,15 +51,15 @@ def mlp(inputs, hidden_layers):
         hidden, units=hidden_size, use_bias=False, activation=nn_ops.relu)
   return hidden
 
-# def rnn(inputs, hidden_layers):
-#   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
-#       inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
-#   return outputs, states, initial_states, zero_state
-
 def rnn(inputs, hidden_layers):
   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
-      inputs, hidden_layers, fast_weights_impl.FastWeightsRNNCell)
+      inputs, hidden_layers, rnn_cell_impl.BasicLSTMCell)
   return outputs, states, initial_states, zero_state
+
+# def rnn(inputs, hidden_layers):
+#   outputs, states, initial_states, zero_state = stacked_rnn_impl.stacked_rnn(
+#       inputs, hidden_layers, fast_weights_impl.FastWeightsRNNCell)
+#   return outputs, states, initial_states, zero_state
 
 
 class PGTest(test.TestCase):
@@ -76,6 +77,8 @@ class PGTest(test.TestCase):
       entropy_coeff=.01,
       value_coeff=.5,
       value_units=16,
+      state_coeff=.5,
+      state_units=16,
       assign_policy_steps=2,
       max_sequence_length=33,
       max_meta_sequence_length=99,
@@ -456,7 +459,7 @@ class PGTest(test.TestCase):
         lambda_td=PGTest.hparams.lambda_td)
 
     actor_loss_op = -action_distribution.log_prob(action_ph) * advantage_op
-    critic_loss_op = .5 * math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
+    critic_loss_op = math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
     loss_op = entropy_loss_op + actor_loss_op + critic_loss_op
     loss_op = math_ops.reduce_mean(
@@ -505,7 +508,7 @@ class PGTest(test.TestCase):
         print('mean={}, max={}, min={}'.format(
             sums.mean(), sums.max(), sums.min()))
 
-  # @test_util.skip_if(True)
+  @test_util.skip_if(True)
   def test_pg_ops_meta_rl(self):
     """This tests the A2C algorithm with GAE for meta-RL on the dependent bandits tasks.
 
@@ -629,7 +632,7 @@ class PGTest(test.TestCase):
         lambda_td=PGTest.hparams.lambda_td)
 
     actor_loss_op = -action_distribution.log_prob(action_ph) * advantage_op
-    critic_loss_op = .5 * math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
+    critic_loss_op = math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
     entropy_loss_op = -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
     loss_op = entropy_loss_op + actor_loss_op + critic_loss_op
     loss_op = math_ops.reduce_mean(

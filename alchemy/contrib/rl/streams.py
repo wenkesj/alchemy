@@ -161,14 +161,14 @@ class Stack(ReplayStream):
     return self.serialize_replay(memory)
 
 
-class FIFO(ReplayStream):
+class Queue(ReplayStream):
 
   """
-  A FIFO replay memory.
+  A Queue replay memory.
   """
 
   def __init__(self, *args, **kwargs):
-    super(FIFO, self).__init__(*args, **kwargs)
+    super(Queue, self).__init__(*args, **kwargs)
     self.memory = []
 
   def write(self, replay):
