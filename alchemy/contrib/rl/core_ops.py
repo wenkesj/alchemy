@@ -32,6 +32,7 @@ def discount(rewards, max_sequence_length, initial_value=None, weights=1., disco
   """
   has_initial_value = isinstance(initial_value, ops.Tensor)
 
+  rewards = ops.convert_to_tensor(rewards, dtype=dtypes.float32)
   weights = ops.convert_to_tensor(weights, dtype=rewards.dtype)
   discount = ops.convert_to_tensor(discount, dtype=rewards.dtype)
 
