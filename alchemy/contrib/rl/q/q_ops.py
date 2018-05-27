@@ -72,7 +72,7 @@ def expected_q_value(reward, action, action_value, next_action_value,
     reward_t = core_ops.discount(
         reward,
         max_sequence_length=max_sequence_length,
-        initial_value=next_q_value,
+        # initial_value=next_q_value,
         weights=weights,
         discount=discount)
     discount_t = array_ops.tile(
