@@ -217,7 +217,6 @@ def rollout_meta_on_gym_env(sess,
     raise ValueError('missing `stream` to `save_replay`.')
 
   replays = []
-  # internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
   for episode in range(num_episodes):
     internal_state = sess.run(zero_state_fn(1, dtype=state_ph.dtype))
     reward = 0.

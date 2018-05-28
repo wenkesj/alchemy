@@ -29,6 +29,8 @@ from tensorflow.python.training import training_util
 from tensorflow.python.training import learning_rate_decay
 from tensorflow.python.training import adam
 
+from agents.algorithms.ppo import utility
+
 from alchemy.utils import distribution_utils
 from alchemy.utils import sequence_utils
 from alchemy.utils import shortcuts
@@ -150,7 +152,9 @@ class PGTest(test.TestCase):
         sequence_length=sequence_length,
         max_sequence_length=PGTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
-        discount=PGTest.hparams.discount)
+        discount=PGTest.hparams.discount,
+        scale=True,
+        center=True)
 
     loss_op = -action_distribution.log_prob(action_ph) * advantage_op
     loss_op += -action_distribution.entropy(name='entropy') * PGTest.hparams.entropy_coeff
@@ -161,7 +165,6 @@ class PGTest(test.TestCase):
     optimizer = adam.AdamOptimizer(
         learning_rate=PGTest.hparams.learning_rate)
     train_op = optimizer.minimize(loss_op)
-
 
     with self.test_session() as sess:
       sess.run(variables.global_variables_initializer())
@@ -312,7 +315,9 @@ class PGTest(test.TestCase):
         max_sequence_length=PGTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=PGTest.hparams.discount,
-        lambda_td=PGTest.hparams.lambda_td)
+        lambda_td=PGTest.hparams.lambda_td,
+        scale=False,
+        center=True)
 
     # actor loss
     logits_prob = -action_distribution.log_prob(action_ph)
@@ -456,7 +461,9 @@ class PGTest(test.TestCase):
         max_sequence_length=PGTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=PGTest.hparams.discount,
-        lambda_td=PGTest.hparams.lambda_td)
+        lambda_td=PGTest.hparams.lambda_td,
+        scale=False,
+        center=True)
 
     actor_loss_op = -action_distribution.log_prob(action_ph) * advantage_op
     critic_loss_op = math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
@@ -508,7 +515,7 @@ class PGTest(test.TestCase):
         print('mean={}, max={}, min={}'.format(
             sums.mean(), sums.max(), sums.min()))
 
-  @test_util.skip_if(True)
+  # @test_util.skip_if(True)
   def test_pg_ops_meta_rl(self):
     """This tests the A2C algorithm with GAE for meta-RL on the dependent bandits tasks.
 
@@ -521,11 +528,11 @@ class PGTest(test.TestCase):
     random_seed.set_random_seed(42)
 
     train_envs = {
-      'hard': bandits.BanditHard(),
-      'medium': bandits.BanditMedium(),
+      'hard': bandits.BanditHardEnv(),
+      'medium': bandits.BanditMediumEnv(),
     }
     test_envs = {
-      'easy': bandits.BanditEasy(),
+      'easy': bandits.BanditEasyEnv(),
     }
 
     for env in train_envs.values():
@@ -629,7 +636,9 @@ class PGTest(test.TestCase):
         max_sequence_length=PGTest.hparams.max_meta_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
         discount=PGTest.hparams.discount,
-        lambda_td=PGTest.hparams.lambda_td)
+        lambda_td=PGTest.hparams.lambda_td,
+        scale=False,
+        center=True)
 
     actor_loss_op = -action_distribution.log_prob(action_ph) * advantage_op
     critic_loss_op = math_ops.square(return_op - value_op) * PGTest.hparams.value_coeff
@@ -689,8 +698,8 @@ class PGTest(test.TestCase):
           sums = rollouts.reduce_stats(
                 experience.Keys.REWARD,
                 stats=[experience.Stats.SUM])
-          print('{}: mean={}, max={}, min={}'.format(
-              test_env_name, sums.mean(), sums.max(), sums.min()))
+          print(test_env_name)
+          print(sums)
 
 
 if __name__ == '__main__':

@@ -14,7 +14,8 @@ def advantage(rewards, sequence_length, max_sequence_length,
               weights=1.,
               discount=.95,
               time_major=False,
-              normalize=True):
+              scale=False,
+              center=False):
   """Compute the advantage based on the baseline discounted rewards.
 
   Arguments:
@@ -24,7 +25,8 @@ def advantage(rewards, sequence_length, max_sequence_length,
     weights: `tf.Tensor`, the weights/mask to apply to the result.
     discount: 0D scalar, the discount factor (gamma).
     time_major: `Boolean`, if rewards is 2D and already time_major, i.e. [time, batch_size].
-    normalize: `Boolean`, if discounts are normalized by the aggregate baseline.
+    scale: `Boolean`, if discounts are scaled by the aggregate baseline.
+    center: `Boolean`, if discounts are centered by the aggregate baseline.
 
   Returns:
     Tensor with the same shape as `rewards`.
@@ -37,11 +39,10 @@ def advantage(rewards, sequence_length, max_sequence_length,
       time_major=time_major)
   discounted_reward_op.set_shape([None, max_sequence_length])
 
-  if normalize:
-    aggregate_baseline = shortcuts.cummean(
-        discounted_reward_op, sequence_length, max_sequence_length)
-
-    discounted_reward_op = discounted_reward_op - aggregate_baseline
+  if scale or center:
+    discounted_reward_op = shortcuts.cumnormalize(
+        discounted_reward_op, sequence_length, max_sequence_length,
+        scale=scale, center=center)
   return discounted_reward_op
 
 
@@ -53,7 +54,8 @@ def generalized_advantage_estimate(rewards,
                                    discount=.9,
                                    lambda_td=.95,
                                    time_major=False,
-                                   normalize=True):
+                                   scale=False,
+                                   center=False):
   """Computes the GAE algorithm.
 
   Arguments:
@@ -65,7 +67,8 @@ def generalized_advantage_estimate(rewards,
     discount: 0D scalar, the discount factor (gamma).
     lambda_td: 0D scalar, the td(lambda) factor (lambda).
     time_major: `Boolean`, if rewards is 2D and already time_major, i.e. [time, batch_size].
-    normalize: `Boolean`, if advantages are normalized by the aggregate baseline.
+    scale: `Boolean`, if discounts are scaled by the aggregate baseline.
+    center: `Boolean`, if discounts are centered by the aggregate baseline.
 
   Returns:
     `tuple` of Tensors with the same shape as `rewards`: (advantages, returns).
@@ -91,8 +94,8 @@ def generalized_advantage_estimate(rewards,
   returns_op = advantage_op + values
   returns_op.set_shape([None, max_sequence_length])
 
-  if normalize:
-    aggregate_baseline = shortcuts.cummean(
-        advantage_op, sequence_length, max_sequence_length)
-    advantage_op = advantage_op - aggregate_baseline
+  if scale or center:
+    advantage_op = shortcuts.cumnormalize(
+        advantage_op, sequence_length, max_sequence_length,
+        scale=scale, center=center)
   return advantage_op, returns_op

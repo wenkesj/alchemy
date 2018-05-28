@@ -184,6 +184,7 @@ def distribution_from_gym_space(space, logits=None, name='SpaceDistribution', tr
 
 
 def _dense_projection(inputs, shape, trainable=True):
+  shape = list(shape)
   flat_shape = array_utils.product(shape)
   target_shape = _EXTRA_DIMS + shape
 

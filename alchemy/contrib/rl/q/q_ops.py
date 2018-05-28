@@ -45,10 +45,7 @@ def expected_q_value(reward, action, action_value, next_action_value,
   ndim = len(action_value.shape)
 
   q_value = sequence_utils.gather_along_second_axis(action_value, action)
-  if ndim == 4:
-    q_value.set_shape([None, max_sequence_length, action_value.shape[-1]])
-  elif ndim == 3:
-    q_value.set_shape([None, max_sequence_length])
+  q_value.set_shape([None, max_sequence_length])
 
   if isinstance(next_action_value, tuple) or isinstance(next_action_value, list):
     assert_utils.assert_true(
@@ -62,41 +59,29 @@ def expected_q_value(reward, action, action_value, next_action_value,
     next_q_value = sequence_utils.gather_along_second_axis(
         next_action_value,
         math_ops.argmax(next_action_value, -1, output_type=dtypes.int32))
+  next_q_value.set_shape([None, max_sequence_length])
 
-  if ndim == 4:
-    next_q_value.set_shape([None, max_sequence_length, action_value.shape[-1]])
-  elif ndim == 3:
-    next_q_value.set_shape([None, max_sequence_length])
-
-  def true_fn():
-    reward_t = core_ops.discount(
-        reward,
-        max_sequence_length=max_sequence_length,
-        # initial_value=next_q_value,
-        weights=weights,
-        discount=discount)
-    discount_t = array_ops.tile(
-        array_ops.expand_dims(discount, -1),
-        [array_ops.shape(sequence_length)[0]]) ** math_ops.cast(
-            sequence_length, dtypes.float32)
-    discount_t = array_ops.expand_dims(discount_t, -1)
-    if ndim == 4:
-      reward_t = array_ops.expand_dims(reward_t, -1)
-      discount_t = array_ops.expand_dims(discount_t, -1)
+  def n_step_return():
+    rest_of_rewards = reward[:, 1:]
+    initial_reward = reward[:, 0]
+    initial_rewards = array_ops.concat(
+        [array_ops.expand_dims(initial_reward, -1), array_ops.zeros_like(rest_of_rewards)], -1)
+    reward_t = initial_rewards + array_ops.concat(
+        [array_ops.zeros_like(
+            array_ops.expand_dims(initial_reward, -1)), math_ops.cumsum(
+                discount * rest_of_rewards, axis=-1, reverse=False)], -1)
+    discount_t = array_ops.expand_dims(
+        array_ops.tile(
+            array_ops.expand_dims(discount, -1),
+            [array_ops.shape(sequence_length)[0]]) ** math_ops.cast(
+                sequence_length, dtypes.float32), -1)
     return reward_t + discount_t * next_q_value
 
-  def false_fn():
+  def single_step_return():
     reward_t = reward
-    if ndim == 4:
-      reward_t = array_ops.expand_dims(reward_t, -1)
     return reward_t + discount * next_q_value
 
-  expected_q_value = control_flow_ops.cond(n_step, true_fn, false_fn)
-
-  if ndim == 4:
-    weights = array_ops.expand_dims(weights, -1)
-    expected_q_value.set_shape([None, max_sequence_length, action_value.shape[-1]])
-  elif ndim == 3:
-    expected_q_value.set_shape([None, max_sequence_length])
+  expected_q_value = control_flow_ops.cond(n_step, n_step_return, single_step_return)
+  expected_q_value.set_shape([None, max_sequence_length])
 
   return (q_value * weights, expected_q_value * weights)

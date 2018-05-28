@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import gen_math_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import nn_impl
 from tensorflow.python.ops import state_ops
@@ -20,23 +21,10 @@ def ndims(x):
   """Return the rank of the tensor as int."""
   return len(x.get_shape())
 
-def normalize(x, axis=-1):
+def zero_to_one(x, axis=-1):
   """Project `x` into the range [0, 1]"""
   min_x = array_ops.expand_dims(math_ops.reduce_min(x, axis=axis), axis)
   return (x - min_x) / (array_ops.expand_dims(math_ops.reduce_max(x, axis=axis), axis) - min_x)
-
-def batch_norm(op):
-  mean_op = array_ops.expand_dims(
-      math_ops.reduce_mean(
-          op, axis=0), 0)
-
-  diff_op = op - mean_op
-  stdv_op = math_ops.sqrt(
-      array_ops.expand_dims(
-          math_ops.reduce_mean(
-              math_ops.square(diff_op), axis=0), 0))
-  return ((op - mean_op) + distribution_utils.epsilon) / (
-      stdv_op + distribution_utils.epsilon)
 
 def cummean(op, length, max_length):
   mask = math_ops.cast(array_ops.sequence_mask(length, maxlen=max_length), op.dtype)
@@ -46,20 +34,18 @@ def cummean(op, length, max_length):
           length_expanded, op.dtype)
   return mean_op * mask
 
-def cumstdv(op, mean_op, length, max_length):
-  mask = math_ops.cast(array_ops.sequence_mask(length, maxlen=max_length), op.dtype)
-  length_expanded = array_ops.expand_dims(length, -1)
-  stdv_op = math_ops.sqrt(
-      math_ops.cumsum(
-          op - mean_op, axis=-1, reverse=False) / math_ops.cast(
-              length_expanded, op.dtype))
-  return stdv_op * mask
-
-def cumstandardize(op, length, max_length):
-  mean_op = cummean(op, length, max_length)
-  stdv_op = cumstdv(op, mean_op, length, max_length)
-  return ((op - mean_op) + distribution_utils.epsilon) / (
-      stdv_op + distribution_utils.epsilon) * mask
+def cumnormalize(op, length, max_length, scale=True, center=True):
+  if center:
+    mean = cummean(
+        op, length, max_length)
+    op -= mean
+  if scale:
+    variance = math_ops.sqrt(cummean(math_ops.square(op), length, max_length))
+    op /= array_ops.where(
+        gen_math_ops.equal(variance, 0),
+        array_ops.ones_like(variance),
+        variance)
+  return op
 
 def ssd(x, y, extra_dims=2):
   """`Sum Squared over D`: `l2` over `n`-dimensions (starting at `extra_dims`)

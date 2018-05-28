@@ -174,7 +174,7 @@ class QTest(test.TestCase):
         print('mean={}, max={}, min={}'.format(
             sums.mean(), sums.max(), sums.min()))
 
-  # @test_util.skip_if(True)
+  @test_util.skip_if(True)
   def test_q_ops_double_dqn(self):
     env = gym.make('CartPole-v0')
     ops.reset_default_graph()
@@ -243,7 +243,8 @@ class QTest(test.TestCase):
         sequence_length,
         max_sequence_length=QTest.hparams.max_sequence_length,
         weights=(1 - math_ops.cast(terminal_ph, reward_ph.dtype)),
-        discount=QTest.hparams.discount)
+        discount=QTest.hparams.discount,
+        n_step=QTest.hparams.n_step)
 
     # mean_squared_error
     loss_op = math_ops.square(q_value_op - expected_q_value_op)

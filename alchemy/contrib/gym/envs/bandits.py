@@ -60,10 +60,10 @@ class BanditEnv(Env):
     pass
 
 
-class ConstantBanditEnv(Env):
+class InformativeBanditEnv(Env):
 
   """
-  `ConstantBanditEnv` is a `gym.Env` implements deterministic, 11-bandit problem with informative
+  `InformativeBanditEnv` is a `gym.Env` implements deterministic, 11-bandit problem with informative
   rewards.
   """
 
@@ -112,21 +112,21 @@ class ConstantBanditEnv(Env):
     pass
 
 
-class BanditUniform(BanditEnv):
+class BanditUniformEnv(BanditEnv):
   def __init__(self):
-    super(BanditUniform, self).__init__(np.random.uniform())
+    super(BanditUniformEnv, self).__init__(np.random.uniform())
 
 
-class BanditEasy(BanditEnv):
+class BanditEasyEnv(BanditEnv):
   def __init__(self):
-    super(BanditEasy, self).__init__(np.random.uniform(.1, .9))
+    super(BanditEasyEnv, self).__init__(np.random.uniform(.1, .9))
 
 
-class BanditMedium(BanditEnv):
+class BanditMediumEnv(BanditEnv):
   def __init__(self):
-    super(BanditMedium, self).__init__(np.random.uniform(.25, .75))
+    super(BanditMediumEnv, self).__init__(np.random.uniform(.25, .75))
 
 
-class BanditHard(BanditEnv):
+class BanditHardEnv(BanditEnv):
   def __init__(self):
-    super(BanditHard, self).__init__(np.random.uniform(.4, .6))
+    super(BanditHardEnv, self).__init__(np.random.uniform(.4, .6))
